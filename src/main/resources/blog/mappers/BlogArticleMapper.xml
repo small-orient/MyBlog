@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="blog.dao.BlogArticleDao">
+
+    <resultMap id="BlogArticleResult" type="BlogArticle">
+        <id property="id" column="id"/>
+        <result property="typeName" column="typeName"/>
+        <result property="orderNo" column="orderNo"/>
+        <result property="blogCount" column="blogCount"/>
+    </resultMap>
+
+    <!--查询所有博客文章类型列表：无参查询-->
+    <select id="countList" parameterType="String" resultMap="BlogArticleResult">
+
+         select t2.id,t2.typeName,count(t1.id) blogCount
+         from t_blog t1 right join t_blogarticle t2
+         on t1.articleTypeId=t2.id group by t2.typeName order by t2.orderNo
+
+    </select>
+
+    <!--根据Id查询博客文章类型-->
+    <select id="findById" parameterType="java.lang.Integer" resultMap="BlogArticleResult">
+
+        select * from t_blogarticle where id=#{id}
+
+    </select>
+
+    <!--根据参数查询博客文章类型列表:参数不固定-->
+    <select id="list"  resultMap="BlogArticleResult">
+
+        select * from t_blogarticle where 1=1
+
+        <if test="start != null and end != null">
+            limit #{start},${end}
+        </if>
+
+    </select>
+
+    <!--根据参数查询博客文章类型总数:参数不固定-->
+    <select id="getTotal" resultType="java.lang.Long" >
+
+        select count(id) from t_blogarticle
+
+    </select>
+
+    <!--添加单条博客文章-->
+    <insert id="add" parameterType="BlogArticle" >
+
+       insert into t_blogarticle(typeName,orderNo) values(#{typeName},#{orderNo})
+
+    </insert>
+
+    <!--修改单条博客文章-->
+    <update id="update" parameterType="BlogArticle" >
+
+       update t_blogarticle
+       <set>
+           <if test="typeName != null and typeName != ''">
+               typeName=#{typeName},
+           </if>
+
+           <if test="orderNo != null and orderNo != ''">
+               orderNo=#{orderNo},
+           </if>
+       </set>
+        where id=#{id}
+    </update>
+
+    <!--根据Id删除单条博客文章-->
+    <delete id="delete" parameterType="java.lang.Integer" >
+
+       delete from t_blogarticle where id=#{id}
+
+    </delete>
+
+</mapper>

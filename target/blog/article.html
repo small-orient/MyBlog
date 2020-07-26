@@ -16,17 +16,25 @@
 <script src="static/js/common.js"></script>
 <!--<script src="js/snowy.js"></script>-->
 <script type="text/javascript">
-	
-$(function(){
-	$("#page").Page({
+
+/*
+$("#page").Page({
 	  totalPages: 7,//分页总数
 	  liNums: 5,//分页的数字按钮数(建议取奇数)
 	  activeClass: 'activP', //active 类样式定义
 	  callBack : function(page){
 			//console.log(page)
 	  }
+
   });
-})
+  JS编写页码 */
+
+/*$(function(){
+	$.get("admin/blogArticle/list",{currentPage,pageSize},function (pb) {
+
+	})
+
+})*/
 </script>
 
 <body>
@@ -67,26 +75,45 @@ $(function(){
 				<div class="col-lg-9 col-md-9 w_main_left">
 					<div class="panel panel-default">
 					  <div class="panel-body contentList">
-					  	
+
+
+
 					  	<div class="panel panel-default w_article_item">
 						  <div class="panel-body">
-						    <div class="row">
-							  <div class="col-xs-6 col-md-3">
-							    <a href="#" class="thumbnail w_thumbnail">
-							      <img src="static/img/aticleview.png" alt="...">
-							    </a>
-							  </div>
-							
+
+							  <div class="row">
+								  			<!--左框图片区-->
+										  <div class="col-xs-6 col-md-3">
+											<a href="#" class="thumbnail w_thumbnail">
+											  <img src="static/img/aticleview.png" alt="...">
+											</a>
+										  </div>
+
 							  <h4 class="media-heading">
-							  	<a class="title" href="article_detail.html">Media heading</a>
+							  	<a class="title" href="article_detail.html">小标题</a>
 							  </h4>
+								<!--关键词区-->
 							  <p><a class="label label-default">Nginx</a><a class="label label-default">tomcat负载均衡</a></p>
+								<!--部分文章内容-->
 							  <p class="w_list_overview overView">个人博客网站正在建设中。。。。</p>
-							  <p class="count_r"><span class="count"><i class="glyphicon glyphicon-user"></i><a href="#">admin</a></span> <span class="count"><i class="glyphicon glyphicon-eye-open"></i>阅读:1003</span><span class="count"><i class="glyphicon glyphicon-comment"></i>评论:2</span><span class="count"><i class="glyphicon glyphicon-time"></i>2017-01-16</span></p>
+							 	<!--用户、阅读量、评论记录区-->
+							  <p class="count_r">
+								  <span class="count">
+									  <!--a标签字样左图-->
+								  <i class="glyphicon glyphicon-user"></i><a href="#">admin</a>
+								  </span>
+									<!--均同上-->
+								  <span class="count"><i class="glyphicon glyphicon-eye-open"></i>阅读:1003</span>
+								  <span class="count"><i class="glyphicon glyphicon-comment"></i>评论:2</span>
+								  <span class="count"><i class="glyphicon glyphicon-time"></i>2017-01-16</span></p>
+
 							</div>
 						  </div>
 						</div>
-					  	
+
+
+
+
 					    <div class="panel panel-default w_article_item">
 						  <div class="panel-body">
 						    <div class="row">
@@ -182,30 +209,32 @@ $(function(){
 						</div>
 						
 						
-						<!--<div class="page">
+						<div id="page">
 							<nav aria-label="Page navigation">
 						  <ul class="pagination">
 						    <li>
 						      <a href="#" aria-label="Previous">
-						        <span aria-hidden="true">&laquo;</span>
+						        <span aria-hidden="true">&laquo;首页</span>
 						      </a>
 						    </li>
+							  <li class=""><a href="#">上一页</a></li>
 						    <li class="active"><a href="#">1</a></li>
 						    <li><a href="#">2</a></li>
 						    <li><a href="#">3</a></li>
 						    <li><a href="#">4</a></li>
 						    <li><a href="#">5</a></li>
+							  <li class=""><a href="#">上一页</a></li>
 						    <li>
 						      <a href="#" aria-label="Next">
-						        <span aria-hidden="true">&raquo;</span>
+						        <span aria-hidden="true">尾页&raquo;</span>
 						      </a>
 						    </li>
 						  </ul>
 						</nav>
-						</div>-->
-						<div id="page">
-							
 						</div>
+					<!--	<div id="page" >
+							
+						</div>-->
 						
 						
 					  </div>

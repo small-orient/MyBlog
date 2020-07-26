@@ -11,6 +11,12 @@ public class BloggerServiceImpl implements BloggerService {
     @Resource
     private BloggerDao bloggerDao;
 
+    /**
+     * Service验证用户名密码方法
+     * @param userName
+     * @param password
+     * @return
+     */
     @Override
     public Blogger getByUserName(String userName,String password) {
 

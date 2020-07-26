@@ -59,7 +59,7 @@ public class BloggerController {
             e.printStackTrace();
         }
 
-        System.out.println(info.getErrorInfo()+info.isFlag());
+
         //返回json
         return resultInfo;
     }

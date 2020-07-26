@@ -40,7 +40,6 @@
 	$(function () {
 		$("#submit_btn").click(function () {
 			$.post("blogger/login",$("#login").serialize(),function (info) {
-                alert(info.flag)
 				//查看用户名密码是否为空
 				if ($("#userName").val() == '' || $("#userName").val() == null){
 					$("#error").html("用户名不能为空!");
