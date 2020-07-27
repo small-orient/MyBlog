@@ -25,7 +25,7 @@ public interface BlogArticleService {
     public Integer add(BlogArticle blogArticle);
 
     //修改单条博客文章
-    public Integer update(BlogArticle blogArticle);
+    public Integer update(int id,String typeName,String orderNo);
 
     //根据Id删除单条博客文章
     public Integer delete(Integer id);

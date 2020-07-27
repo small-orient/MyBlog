@@ -15,60 +15,144 @@
     <script src="static/scripts/jquery-1.9.1.min.js"></script>"
         <script>
 
-
-          /*  <tr class="heading">
-                <td class="cell-check">
-                <input type="checkbox" class="inbox-checkbox">
-                </td>
-                <td class="cell-icon">
-                </td>
-                <td class="cell-author hidden-phone hidden-tablet">
-                类型
-                </td>
-                <td class="cell-title">
-                博客名称
-                </td>
-                <td class="cell-icon hidden-phone hidden-tablet">
-                </td>
-                <td class="cell-time align-right">
-                序号
-                </td>
-             </tr>
-
-
-                <tr class="unread">
-                <td class="cell-check">
-                <input type="checkbox" class="inbox-checkbox">
-                </td>
-                <td class="cell-icon">
-                <i class="icon-star"></i>
-                </td>
-                <td class="cell-author hidden-phone hidden-tablet">
-                John Donga
-            </td>
-            <td class="cell-title">
-                Sample Work
-            </td>
-            <td class="cell-icon hidden-phone hidden-tablet">
-                <!-- <i class="icon-paper-clip"></i>-->
-                </td>
-                <td class="cell-time align-right">
-                18:24
-            </td>
-            </tr>
-            */
-
-
-
-
             $(function () {
-
-
+                //调用分页方法
                 load();
+
+                //添加文章类型方法
+                $("#add_submit").click(function () {
+                    var typeName;
+                    var orderNo;
+                    typeName_test = $("#typeName").val();
+                    orderNo_test = $("#orderNo").val();
+                    if (typeName_test == '' && typeName_test.length <= 0 ||orderNo_test == '' && orderNo_test.length <= 0){
+                        alert("请输入数据")
+                    }else {
+                        typeName = $("#typeName").val();
+                        orderNo = $("#orderNo").val();
+                    }
+
+                        $.get("admin/blogArticle/save",{typeName:typeName,orderNo:orderNo},function (info) {
+                            if (info.flag){
+                                //保存成功
+                                $("#addMsg").html("保存成功！");
+                                //重置输入框
+                                $("#typeName").val('');
+                                $("#orderNo").val('');
+                                //刷新当前页面
+                                $(".btn btn-default").click(function () {
+                                    location.reload();
+                                })
+
+                            }else {
+                                //保存失败
+                                $("#addMsg").html(info.errorInfo);
+
+                            }
+
+                        },"json")
+                })
+
+
+
+                //修改单条文章类型方法：先回显，再更新
+                $("#update").click(function () {
+                    var checkBox = $('input[name = ArticleType]'); //复选框对象
+                    var count = 0; //继续被选择的复选框数量
+                    var id = 0; //复选框对应的数据编号顺序
+                    //遍历复选框
+                    for (var i = 0; i < checkBox.length; i++){
+                        //如果被选择
+                        if (checkBox[i].checked){
+                            //记录+1
+                            id = i+1;
+                            count = count +1;
+                        }
+                    }
+
+                    //如果被选择复选框数量大于1个，点击修改按钮时，提示
+                    if (count > 1 ){
+                        alert("只能选择单条数据进行更改！");
+                    }
+
+                    if (count == 0){
+                        //如果一个都没选，点击修改按钮时，也给提示
+                        alert("请您选择需要修改的一条数据！");
+                    }
+
+                    if (count == 1) {
+                        var typeName_ud;
+                        var newTypeName_ud;
+                        var orderNo_ud;
+                        var newOrderNo_ud;
+                        //发送ajax请求回显所选择的数据
+                        $.get("admin/blogArticle/relook", {id:id}, function (BlogArticle) {
+                            //回显值
+                            $("#typeName_update").val(BlogArticle.typeName);
+                            $("#orderNo_update").val(BlogArticle.orderNo);
+
+                            //打开修改模态框
+                            $("#updateModal").modal('show');
+
+                            //第一条数据如果改变，则保存新数据，传递给后台
+                            $("#typeName_update").focus(function () {
+                                $(this).attr("typeName", $(this).val()); //将当前值存入自定义属性
+                            }).blur(function () {
+                                 typeName_ud = ($(this).attr("typeName")); //获取原值
+                                 newTypeName_ud = ($(this).val()); //获取当前值
+
+                            })
+
+                            //第二条数据如果改变，则保存新数据，传递给后台
+                            $("#orderNo_update").focus(function () {
+                                $(this).attr("orderNo", $(this).val()); //将当前值存入自定义属性
+                            }).blur(function () {
+                               orderNo_ud = ($(this).attr("orderNo")); //获取原值
+                               newOrderNo_ud = ($(this).val()); //获取当前值
+                                if ( typeName_ud != newTypeName_ud | orderNo_ud != newOrderNo_ud) {
+                                    //给保存修改按钮加一个点击事件，保存变化值
+                                    $("#update_submit").click(function () {
+                                        typeName_update = newTypeName_ud;
+                                        orderNo_update = newOrderNo_ud;
+
+                                        update(id,typeName_update,orderNo_update);
+                                        $("#typeName_update").val('');
+                                        $("#orderNo_update").val('');
+
+                                    })
+                                }
+                            })
+
+                        },"json")
+
+
+                    }
+
+
+                })
+
+
 
             })
 
 
+
+            //修改类型方法
+            function update(id,typeName_update,orderNo_update) {
+                $.get("admin/blogArticle/update",{id:id,typeName_update:typeName_update,orderNo_update:orderNo_update},function (count) {
+                        if (count != null && count.length >0){
+                            alert("修改成功！")
+                        }
+                })
+            }
+
+
+
+
+
+
+
+            //封装分页方法
             function load(currentPage) {
                     $.get("admin/blogArticle/list",{currentPage:currentPage},function (pb) {
                         /*分页：
@@ -151,12 +235,12 @@
                         //开头的tr
                         var titleTr = '<tr class="heading">\n' +
                             '                                                <td class="cell-check">\n' +
-                            '                                                    <input type="checkbox" class="inbox-checkbox">\n' +
+                            '                                                    <input type="checkbox"   class="inbox-checkbox">\n' +
                             '                                                </td>\n' +
                             '                                                <td class="cell-icon">\n' +
                             '                                                </td>\n' +
                             '                                                <td class="cell-author hidden-phone hidden-tablet">\n' +
-                            '                                                    文章顺序\n' +
+                            '                                                    编号\n' +
                             '                                                </td>\n' +
                             '                                                <td class="cell-title">\n' +
                             '                                                    类型名称\n' +
@@ -175,7 +259,7 @@
 
                             var tr = '  <tr class="unread">\n' +
                                 '                <td class="cell-check">\n' +
-                                '                <input type="checkbox" class="inbox-checkbox">\n' +
+                                '                <input type="checkbox" name="ArticleType" class="inbox-checkbox">\n' +
                                 '                </td>               \n' +
                                 '                <td class="cell-icon">\n' +
                                 '                <i class="icon-star"></i>\n' +
@@ -330,9 +414,19 @@
                                             </ul>
                                         </div>
                                     </div>
-                                    <div class="pull-right">
-                                        <a href="#" class="btn btn-primary">Compose</a>
+
+                                    <!--增删改信息按钮-->
+                                    <div class="pull-right" >
+                                        <button class="btn btn-danger " data-toggle="modal" data-target="#deleteModal" id="delete">删除</button>
                                     </div>
+                                    <div class="pull-right" >
+                                        <button class="btn btn-info "  id="update">更改</button>
+                                    </div>
+                                    <div class="pull-right" >
+                                        <button class="btn btn-success " data-toggle="modal" data-target="#addModal" id="add">添加</button>
+                                    </div>
+
+
                                 </div>
                                 <div class="module-body table">
                                     <table class="table table-message">
@@ -386,328 +480,431 @@
                                                 </td>
                                             </tr>
 
-                                                             <!--
+                                            <!-- 添加模态框（Modal） -->
+                                            <div class="modal fade" id="addModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                                                <div class="modal-dialog">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                                                            <h4 class="modal-title" id="myAdd">添加一条博客类型记录</h4>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            文章类别名称：
+                                                            <input type="text" id="typeName" name="typeName" required="true" ><br>
 
-                                                                                        <tr class="unread starred">
-                                                                                            <td class="cell-check">
-                                                                                                <input type="checkbox" class="inbox-checkbox">
-                                                                                            </td>
-                                                                                            <td class="cell-icon">
-                                                                                                <i class="icon-star"></i>
-                                                                                            </td>
-                                                                                            <td class="cell-author hidden-phone hidden-tablet">
-                                                                                                John Donga
-                                                                                            </td>
-                                                                                            <td class="cell-title">
-                                                                                                Test Title
-                                                                                            </td>
-                                                                                            <td class="cell-icon hidden-phone hidden-tablet">
-                                                                                                <i class="icon-paper-clip-no"></i>
-                                                                                            </td>
-                                                                                            <td class="cell-time align-right">
-                                                                                                18:01
-                                                                                            </td>
-                                                                                        </tr>
-                                                                                        <tr class="unread">
-                                                                                            <td class="cell-check">
-                                                                                                <input type="checkbox" class="inbox-checkbox">
-                                                                                            </td>
-                                                                                            <td class="cell-icon">
-                                                                                                <i class="icon-star"></i>
-                                                                                            </td>
-                                                                                            <td class="cell-author hidden-phone hidden-tablet">
-                                                                                                Facebook
-                                                                                            </td>
-                                                                                            <td class="cell-title">
-                                                                                                Dongi sents you a friend request!
-                                                                                            </td>
-                                                                                            <td class="cell-icon hidden-phone hidden-tablet">
-                                                                                                <i class="icon-paper-clip"></i>
-                                                                                            </td>
-                                                                                            <td class="cell-time align-right">
-                                                                                                23:58
-                                                                                            </td>
-                                                                                        </tr>
-                                                                                        <tr class="unread">
-                                                                                            <td class="cell-check">
-                                                                                                <input type="checkbox" class="inbox-checkbox">
-                                                                                            </td>
-                                                                                            <td class="cell-icon">
-                                                                                                <i class="icon-star"></i>
-                                                                                            </td>
-                                                                                            <td class="cell-author hidden-phone hidden-tablet">
-                                                                                                John Donga
-                                                                                            </td>
-                                                                                            <td class="cell-title">
-                                                                                                Something
-                                                                                            </td>
-                                                                                            <td class="cell-icon hidden-phone hidden-tablet">
-                                                                                                <i class="icon-paper-clip"></i>
-                                                                                            </td>
-                                                                                            <td class="cell-time align-right">
-                                                                                                22:17
-                                                                                            </td>
-                                                                                        </tr>
-                                                                                        <tr class="read starred">
-                                                                                            <td class="cell-check">
-                                                                                                <input type="checkbox" class="inbox-checkbox">
-                                                                                            </td>
-                                                                                            <td class="cell-icon">
-                                                                                                <i class="icon-star"></i>
-                                                                                            </td>
-                                                                                            <td class="cell-author hidden-phone hidden-tablet">
-                                                                                                John Donga
-                                                                                            </td>
-                                                                                            <td class="cell-title">
-                                                                                                Someone wants to talk to you!
-                                                                                            </td>
-                                                                                            <td class="cell-icon hidden-phone hidden-tablet">
-                                                                                                <i class="icon-paper-clip-no"></i>
-                                                                                            </td>
-                                                                                            <td class="cell-time align-right">
-                                                                                                May 21
-                                                                                            </td>
-                                                                                        </tr>
-                                                                                        <tr class="read">
-                                                                                            <td class="cell-check">
-                                                                                                <input type="checkbox" class="inbox-checkbox">
-                                                                                            </td>
-                                                                                            <td class="cell-icon">
-                                                                                                <i class="icon-star"></i>
-                                                                                            </td>
-                                                                                            <td class="cell-author hidden-phone hidden-tablet">
-                                                                                                John Doe
-                                                                                            </td>
-                                                                                            <td class="cell-title">
-                                                                                                Doe wants to talk to you!
-                                                                                            </td>
-                                                                                            <td class="cell-icon hidden-phone hidden-tablet">
-                                                                                                <i class="icon-paper-clip"></i>
-                                                                                            </td>
-                                                                                            <td class="cell-time align-right">
-                                                                                                May 15
-                                                                                            </td>
-                                                                                        </tr>
-                                                                                        <tr class="read starred">
-                                                                                            <td class="cell-check">
-                                                                                                <input type="checkbox" class="inbox-checkbox">
-                                                                                            </td>
-                                                                                            <td class="cell-icon">
-                                                                                                <i class="icon-star"></i>
-                                                                                            </td>
-                                                                                            <td class="cell-author hidden-phone hidden-tablet">
-                                                                                                Social Network
-                                                                                            </td>
-                                                                                            <td class="cell-title">
-                                                                                                An example message from a social network
-                                                                                            </td>
-                                                                                            <td class="cell-icon hidden-phone hidden-tablet">
-                                                                                                <i class="icon-paper-clip"></i>
-                                                                                            </td>
-                                                                                            <td class="cell-time align-right">
-                                                                                                May 15
-                                                                                            </td>
-                                                                                        </tr>
-                                                                                        <tr class="unread">
-                                                                                            <td class="cell-check">
-                                                                                                <input type="checkbox" class="inbox-checkbox">
-                                                                                            </td>
-                                                                                            <td class="cell-icon">
-                                                                                                <i class="icon-star"></i>
-                                                                                            </td>
-                                                                                            <td class="cell-author hidden-phone hidden-tablet">
-                                                                                                John Donga
-                                                                                            </td>
-                                                                                            <td class="cell-title">
-                                                                                                Sample Work
-                                                                                            </td>
-                                                                                            <td class="cell-icon hidden-phone hidden-tablet">
-                                                                                                <i class="icon-paper-clip"></i>
-                                                                                            </td>
-                                                                                            <td class="cell-time align-right">
-                                                                                                18:24
-                                                                                            </td>
-                                                                                        </tr>
-                                                                                        <tr class="unread starred">
-                                                                                            <td class="cell-check">
-                                                                                                <input type="checkbox" class="inbox-checkbox">
-                                                                                            </td>
-                                                                                            <td class="cell-icon">
-                                                                                                <i class="icon-star"></i>
-                                                                                            </td>
-                                                                                            <td class="cell-author hidden-phone hidden-tablet">
-                                                                                                John Donga
-                                                                                            </td>
-                                                                                            <td class="cell-title">
-                                                                                                Test Title
-                                                                                            </td>
-                                                                                            <td class="cell-icon hidden-phone hidden-tablet">
-                                                                                                <i class="icon-paper-clip-no"></i>
-                                                                                            </td>
-                                                                                            <td class="cell-time align-right">
-                                                                                                18:01
-                                                                                            </td>
-                                                                                        </tr>
-                                                                                        <tr class="unread">
-                                                                                            <td class="cell-check">
-                                                                                                <input type="checkbox" class="inbox-checkbox">
-                                                                                            </td>
-                                                                                            <td class="cell-icon">
-                                                                                                <i class="icon-star"></i>
-                                                                                            </td>
-                                                                                            <td class="cell-author hidden-phone hidden-tablet">
-                                                                                                Facebook
-                                                                                            </td>
-                                                                                            <td class="cell-title">
-                                                                                                Dongi sents you a friend request!
-                                                                                            </td>
-                                                                                            <td class="cell-icon hidden-phone hidden-tablet">
-                                                                                                <i class="icon-paper-clip"></i>
-                                                                                            </td>
-                                                                                            <td class="cell-time align-right">
-                                                                                                23:58
-                                                                                            </td>
-                                                                                        </tr>
-                                                                                        <tr class="unread">
-                                                                                            <td class="cell-check">
-                                                                                                <input type="checkbox" class="inbox-checkbox">
-                                                                                            </td>
-                                                                                            <td class="cell-icon">
-                                                                                                <i class="icon-star"></i>
-                                                                                            </td>
-                                                                                            <td class="cell-author hidden-phone hidden-tablet">
-                                                                                                John Donga
-                                                                                            </td>
-                                                                                            <td class="cell-title">
-                                                                                                Something
-                                                                                            </td>
-                                                                                            <td class="cell-icon hidden-phone hidden-tablet">
-                                                                                                <i class="icon-paper-clip"></i>
-                                                                                            </td>
-                                                                                            <td class="cell-time align-right">
-                                                                                                22:17
-                                                                                            </td>
-                                                                                        </tr>
-                                                                                        <tr class="read starred">
-                                                                                            <td class="cell-check">
-                                                                                                <input type="checkbox" class="inbox-checkbox">
-                                                                                            </td>
-                                                                                            <td class="cell-icon">
-                                                                                                <i class="icon-star"></i>
-                                                                                            </td>
-                                                                                            <td class="cell-author hidden-phone hidden-tablet">
-                                                                                                John Donga
-                                                                                            </td>
-                                                                                            <td class="cell-title">
-                                                                                                Someone wants to talk to you!
-                                                                                            </td>
-                                                                                            <td class="cell-icon hidden-phone hidden-tablet">
-                                                                                                <i class="icon-paper-clip-no"></i>
-                                                                                            </td>
-                                                                                            <td class="cell-time align-right">
-                                                                                                May 21
-                                                                                            </td>
-                                                                                        </tr>
-                                                                                        <tr class="read">
-                                                                                            <td class="cell-check">
-                                                                                                <input type="checkbox" class="inbox-checkbox">
-                                                                                            </td>
-                                                                                            <td class="cell-icon">
-                                                                                                <i class="icon-star"></i>
-                                                                                            </td>
-                                                                                            <td class="cell-author hidden-phone hidden-tablet">
-                                                                                                John Doe
-                                                                                            </td>
-                                                                                            <td class="cell-title">
-                                                                                                Doe wants to talk to you!
-                                                                                            </td>
-                                                                                            <td class="cell-icon hidden-phone hidden-tablet">
-                                                                                                <i class="icon-paper-clip"></i>
-                                                                                            </td>
-                                                                                            <td class="cell-time align-right">
-                                                                                                May 15
-                                                                                            </td>
-                                                                                        </tr>
-                                                                                        <tr class="read starred">
-                                                                                            <td class="cell-check">
-                                                                                                <input type="checkbox" class="inbox-checkbox">
-                                                                                            </td>
-                                                                                            <td class="cell-icon">
-                                                                                                <i class="icon-star"></i>
-                                                                                            </td>
-                                                                                            <td class="cell-author hidden-phone hidden-tablet">
-                                                                                                Social Network
-                                                                                            </td>
-                                                                                            <td class="cell-title">
-                                                                                                An example message from a social network
-                                                                                            </td>
-                                                                                            <td class="cell-icon hidden-phone hidden-tablet">
-                                                                                                <i class="icon-paper-clip"></i>
-                                                                                            </td>
-                                                                                            <td class="cell-time align-right">
-                                                                                                May 15
-                                                                                            </td>
-                                                                                        </tr>
-                                                                                        <tr class="read">
-                                                                                            <td class="cell-check">
-                                                                                                <input type="checkbox" class="inbox-checkbox">
-                                                                                            </td>
-                                                                                            <td class="cell-icon">
-                                                                                                <i class="icon-star"></i>
-                                                                                            </td>
-                                                                                            <td class="cell-author hidden-phone hidden-tablet">
-                                                                                                Greepit.com
-                                                                                            </td>
-                                                                                            <td class="cell-title">
-                                                                                                An email from Greepit.com
-                                                                                            </td>
-                                                                                            <td class="cell-icon hidden-phone hidden-tablet">
-                                                                                                <i class="icon-paper-clip-no"></i>
-                                                                                            </td>
-                                                                                            <td class="cell-time align-right">
-                                                                                                Jan 12
-                                                                                            </td>
-                                                                                        </tr>
-                                                                                        <tr class="read starred">
-                                                                                            <td class="cell-check">
-                                                                                                <input type="checkbox" class="inbox-checkbox">
-                                                                                            </td>
-                                                                                            <td class="cell-icon">
-                                                                                                <i class="icon-star"></i>
-                                                                                            </td>
-                                                                                            <td class="cell-author hidden-phone hidden-tablet">
-                                                                                                EGrappler.com
-                                                                                            </td>
-                                                                                            <td class="cell-title">
-                                                                                                An email from EGrappler.com
-                                                                                            </td>
-                                                                                            <td class="cell-icon hidden-phone hidden-tablet">
-                                                                                                <i class="icon-paper-clip"></i>
-                                                                                            </td>
-                                                                                            <td class="cell-time align-right">
-                                                                                                Jan 11
-                                                                                            </td>
-                                                                                        </tr>
-                                                                                        <tr class="read">
-                                                                                            <td class="cell-check">
-                                                                                                <input type="checkbox" class="inbox-checkbox">
-                                                                                            </td>
-                                                                                            <td class="cell-icon">
-                                                                                                <i class="icon-star"></i>
-                                                                                            </td>
-                                                                                            <td class="cell-author hidden-phone hidden-tablet">
-                                                                                                An unread message
-                                                                                            </td>
-                                                                                            <td class="cell-title">
-                                                                                                This is how an unread message looks alike.
-                                                                                            </td>
-                                                                                            <td class="cell-icon hidden-phone hidden-tablet">
-                                                                                                <i class="icon-paper-clip-no"></i>
-                                                                                            </td>
-                                                                                            <td class="cell-time align-right">
-                                                                                                Jan 10
-                                                                                            </td>
-                                                                                        </tr>-->
+                                                            文章类别序号：
+                                                           <input type="text" id="orderNo" name="orderNo" required="true" ><br>
+                                                            <span ><font color="#1e90ff" id="addMsg" ></font></span>
+
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-default"   data-dismiss="modal">关闭</button>
+                                                            <button type="button" class="btn btn-primary" id="add_submit">保存</button>
+                                                        </div>
+                                                    </div><!-- /.modal-content -->
+                                                </div><!-- /.modal -->
+                                            </div>
+
+                                            <!-- 修改模态框（Modal） -->
+                                            <div class="modal fade" id="updateModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                                                <div class="modal-dialog">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                                                            <h4 class="modal-title" id="myUpdate">修改一条博客类型记录</h4>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            文章类别名称：
+                                                            <input type="text" id="typeName_update" name="typeName" required="true" ><br>
+
+                                                            文章类别序号：
+                                                            <input type="text" id="orderNo_update" name="orderNo" required="true" ><br>
+                                                            <span ><font color="#1e90ff" id="updateMsg" ></font></span>
+
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                                                            <button type="button" class="btn btn-primary" id="update_submit">保存修改</button>
+                                                        </div>
+                                                    </div><!-- /.modal-content -->
+                                                </div><!-- /.modal -->
+                                            </div>
+
+                                            <!-- 删除模态框（Modal） -->
+                                            <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                                                <div class="modal-dialog">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                                                            <h4 class="modal-title" id="myModalLabel">删除一条博客类型记录</h4>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            文章类别名称：
+                                                            <input type="text" id="typeName_delete" name="typeName" required="true" ><br>
+
+                                                            文章类别序号：
+                                                            <input type="text" id="orderNo_delete" name="orderNo" required="true" ><br>
+                                                            <span ><font color="#1e90ff" id="Msg" ></font></span>
+
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                                                            <button type="button" class="btn btn-primary" id="delete_submit">确认删除</button>
+                                                        </div>
+                                                    </div><!-- /.modal-content -->
+                                                </div><!-- /.modal -->
+                                            </div>
+
+
+                                            <!--确认提示框-->
+                                            <div class="modal fade" id="tip" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+                                                <div class="modal-dialog" role="document">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+                                                            <h4 class="modal-title" id="deleteModalLabel">确认框</h4>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <form>
+                                                                <div class="form-group">
+                                                                    <label  class="control-label">确定要删除吗？</label>
+                                                                </div>
+                                                            </form>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-default" data-dismiss="modal">返回</button>
+                                                            <button type="button" class="btn btn-primary" id="confirm">确认</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+
+
+
+
+                                            <!--
+
+                                                                       <tr class="unread starred">
+                                                                           <td class="cell-check">
+                                                                               <input type="checkbox" class="inbox-checkbox">
+                                                                           </td>
+                                                                           <td class="cell-icon">
+                                                                               <i class="icon-star"></i>
+                                                                           </td>
+                                                                           <td class="cell-author hidden-phone hidden-tablet">
+                                                                               John Donga
+                                                                           </td>
+                                                                           <td class="cell-title">
+                                                                               Test Title
+                                                                           </td>
+                                                                           <td class="cell-icon hidden-phone hidden-tablet">
+                                                                               <i class="icon-paper-clip-no"></i>
+                                                                           </td>
+                                                                           <td class="cell-time align-right">
+                                                                               18:01
+                                                                           </td>
+                                                                       </tr>
+                                                                       <tr class="unread">
+                                                                           <td class="cell-check">
+                                                                               <input type="checkbox" class="inbox-checkbox">
+                                                                           </td>
+                                                                           <td class="cell-icon">
+                                                                               <i class="icon-star"></i>
+                                                                           </td>
+                                                                           <td class="cell-author hidden-phone hidden-tablet">
+                                                                               Facebook
+                                                                           </td>
+                                                                           <td class="cell-title">
+                                                                               Dongi sents you a friend request!
+                                                                           </td>
+                                                                           <td class="cell-icon hidden-phone hidden-tablet">
+                                                                               <i class="icon-paper-clip"></i>
+                                                                           </td>
+                                                                           <td class="cell-time align-right">
+                                                                               23:58
+                                                                           </td>
+                                                                       </tr>
+                                                                       <tr class="unread">
+                                                                           <td class="cell-check">
+                                                                               <input type="checkbox" class="inbox-checkbox">
+                                                                           </td>
+                                                                           <td class="cell-icon">
+                                                                               <i class="icon-star"></i>
+                                                                           </td>
+                                                                           <td class="cell-author hidden-phone hidden-tablet">
+                                                                               John Donga
+                                                                           </td>
+                                                                           <td class="cell-title">
+                                                                               Something
+                                                                           </td>
+                                                                           <td class="cell-icon hidden-phone hidden-tablet">
+                                                                               <i class="icon-paper-clip"></i>
+                                                                           </td>
+                                                                           <td class="cell-time align-right">
+                                                                               22:17
+                                                                           </td>
+                                                                       </tr>
+                                                                       <tr class="read starred">
+                                                                           <td class="cell-check">
+                                                                               <input type="checkbox" class="inbox-checkbox">
+                                                                           </td>
+                                                                           <td class="cell-icon">
+                                                                               <i class="icon-star"></i>
+                                                                           </td>
+                                                                           <td class="cell-author hidden-phone hidden-tablet">
+                                                                               John Donga
+                                                                           </td>
+                                                                           <td class="cell-title">
+                                                                               Someone wants to talk to you!
+                                                                           </td>
+                                                                           <td class="cell-icon hidden-phone hidden-tablet">
+                                                                               <i class="icon-paper-clip-no"></i>
+                                                                           </td>
+                                                                           <td class="cell-time align-right">
+                                                                               May 21
+                                                                           </td>
+                                                                       </tr>
+                                                                       <tr class="read">
+                                                                           <td class="cell-check">
+                                                                               <input type="checkbox" class="inbox-checkbox">
+                                                                           </td>
+                                                                           <td class="cell-icon">
+                                                                               <i class="icon-star"></i>
+                                                                           </td>
+                                                                           <td class="cell-author hidden-phone hidden-tablet">
+                                                                               John Doe
+                                                                           </td>
+                                                                           <td class="cell-title">
+                                                                               Doe wants to talk to you!
+                                                                           </td>
+                                                                           <td class="cell-icon hidden-phone hidden-tablet">
+                                                                               <i class="icon-paper-clip"></i>
+                                                                           </td>
+                                                                           <td class="cell-time align-right">
+                                                                               May 15
+                                                                           </td>
+                                                                       </tr>
+                                                                       <tr class="read starred">
+                                                                           <td class="cell-check">
+                                                                               <input type="checkbox" class="inbox-checkbox">
+                                                                           </td>
+                                                                           <td class="cell-icon">
+                                                                               <i class="icon-star"></i>
+                                                                           </td>
+                                                                           <td class="cell-author hidden-phone hidden-tablet">
+                                                                               Social Network
+                                                                           </td>
+                                                                           <td class="cell-title">
+                                                                               An example message from a social network
+                                                                           </td>
+                                                                           <td class="cell-icon hidden-phone hidden-tablet">
+                                                                               <i class="icon-paper-clip"></i>
+                                                                           </td>
+                                                                           <td class="cell-time align-right">
+                                                                               May 15
+                                                                           </td>
+                                                                       </tr>
+                                                                       <tr class="unread">
+                                                                           <td class="cell-check">
+                                                                               <input type="checkbox" class="inbox-checkbox">
+                                                                           </td>
+                                                                           <td class="cell-icon">
+                                                                               <i class="icon-star"></i>
+                                                                           </td>
+                                                                           <td class="cell-author hidden-phone hidden-tablet">
+                                                                               John Donga
+                                                                           </td>
+                                                                           <td class="cell-title">
+                                                                               Sample Work
+                                                                           </td>
+                                                                           <td class="cell-icon hidden-phone hidden-tablet">
+                                                                               <i class="icon-paper-clip"></i>
+                                                                           </td>
+                                                                           <td class="cell-time align-right">
+                                                                               18:24
+                                                                           </td>
+                                                                       </tr>
+                                                                       <tr class="unread starred">
+                                                                           <td class="cell-check">
+                                                                               <input type="checkbox" class="inbox-checkbox">
+                                                                           </td>
+                                                                           <td class="cell-icon">
+                                                                               <i class="icon-star"></i>
+                                                                           </td>
+                                                                           <td class="cell-author hidden-phone hidden-tablet">
+                                                                               John Donga
+                                                                           </td>
+                                                                           <td class="cell-title">
+                                                                               Test Title
+                                                                           </td>
+                                                                           <td class="cell-icon hidden-phone hidden-tablet">
+                                                                               <i class="icon-paper-clip-no"></i>
+                                                                           </td>
+                                                                           <td class="cell-time align-right">
+                                                                               18:01
+                                                                           </td>
+                                                                       </tr>
+                                                                       <tr class="unread">
+                                                                           <td class="cell-check">
+                                                                               <input type="checkbox" class="inbox-checkbox">
+                                                                           </td>
+                                                                           <td class="cell-icon">
+                                                                               <i class="icon-star"></i>
+                                                                           </td>
+                                                                           <td class="cell-author hidden-phone hidden-tablet">
+                                                                               Facebook
+                                                                           </td>
+                                                                           <td class="cell-title">
+                                                                               Dongi sents you a friend request!
+                                                                           </td>
+                                                                           <td class="cell-icon hidden-phone hidden-tablet">
+                                                                               <i class="icon-paper-clip"></i>
+                                                                           </td>
+                                                                           <td class="cell-time align-right">
+                                                                               23:58
+                                                                           </td>
+                                                                       </tr>
+                                                                       <tr class="unread">
+                                                                           <td class="cell-check">
+                                                                               <input type="checkbox" class="inbox-checkbox">
+                                                                           </td>
+                                                                           <td class="cell-icon">
+                                                                               <i class="icon-star"></i>
+                                                                           </td>
+                                                                           <td class="cell-author hidden-phone hidden-tablet">
+                                                                               John Donga
+                                                                           </td>
+                                                                           <td class="cell-title">
+                                                                               Something
+                                                                           </td>
+                                                                           <td class="cell-icon hidden-phone hidden-tablet">
+                                                                               <i class="icon-paper-clip"></i>
+                                                                           </td>
+                                                                           <td class="cell-time align-right">
+                                                                               22:17
+                                                                           </td>
+                                                                       </tr>
+                                                                       <tr class="read starred">
+                                                                           <td class="cell-check">
+                                                                               <input type="checkbox" class="inbox-checkbox">
+                                                                           </td>
+                                                                           <td class="cell-icon">
+                                                                               <i class="icon-star"></i>
+                                                                           </td>
+                                                                           <td class="cell-author hidden-phone hidden-tablet">
+                                                                               John Donga
+                                                                           </td>
+                                                                           <td class="cell-title">
+                                                                               Someone wants to talk to you!
+                                                                           </td>
+                                                                           <td class="cell-icon hidden-phone hidden-tablet">
+                                                                               <i class="icon-paper-clip-no"></i>
+                                                                           </td>
+                                                                           <td class="cell-time align-right">
+                                                                               May 21
+                                                                           </td>
+                                                                       </tr>
+                                                                       <tr class="read">
+                                                                           <td class="cell-check">
+                                                                               <input type="checkbox" class="inbox-checkbox">
+                                                                           </td>
+                                                                           <td class="cell-icon">
+                                                                               <i class="icon-star"></i>
+                                                                           </td>
+                                                                           <td class="cell-author hidden-phone hidden-tablet">
+                                                                               John Doe
+                                                                           </td>
+                                                                           <td class="cell-title">
+                                                                               Doe wants to talk to you!
+                                                                           </td>
+                                                                           <td class="cell-icon hidden-phone hidden-tablet">
+                                                                               <i class="icon-paper-clip"></i>
+                                                                           </td>
+                                                                           <td class="cell-time align-right">
+                                                                               May 15
+                                                                           </td>
+                                                                       </tr>
+                                                                       <tr class="read starred">
+                                                                           <td class="cell-check">
+                                                                               <input type="checkbox" class="inbox-checkbox">
+                                                                           </td>
+                                                                           <td class="cell-icon">
+                                                                               <i class="icon-star"></i>
+                                                                           </td>
+                                                                           <td class="cell-author hidden-phone hidden-tablet">
+                                                                               Social Network
+                                                                           </td>
+                                                                           <td class="cell-title">
+                                                                               An example message from a social network
+                                                                           </td>
+                                                                           <td class="cell-icon hidden-phone hidden-tablet">
+                                                                               <i class="icon-paper-clip"></i>
+                                                                           </td>
+                                                                           <td class="cell-time align-right">
+                                                                               May 15
+                                                                           </td>
+                                                                       </tr>
+                                                                       <tr class="read">
+                                                                           <td class="cell-check">
+                                                                               <input type="checkbox" class="inbox-checkbox">
+                                                                           </td>
+                                                                           <td class="cell-icon">
+                                                                               <i class="icon-star"></i>
+                                                                           </td>
+                                                                           <td class="cell-author hidden-phone hidden-tablet">
+                                                                               Greepit.com
+                                                                           </td>
+                                                                           <td class="cell-title">
+                                                                               An email from Greepit.com
+                                                                           </td>
+                                                                           <td class="cell-icon hidden-phone hidden-tablet">
+                                                                               <i class="icon-paper-clip-no"></i>
+                                                                           </td>
+                                                                           <td class="cell-time align-right">
+                                                                               Jan 12
+                                                                           </td>
+                                                                       </tr>
+                                                                       <tr class="read starred">
+                                                                           <td class="cell-check">
+                                                                               <input type="checkbox" class="inbox-checkbox">
+                                                                           </td>
+                                                                           <td class="cell-icon">
+                                                                               <i class="icon-star"></i>
+                                                                           </td>
+                                                                           <td class="cell-author hidden-phone hidden-tablet">
+                                                                               EGrappler.com
+                                                                           </td>
+                                                                           <td class="cell-title">
+                                                                               An email from EGrappler.com
+                                                                           </td>
+                                                                           <td class="cell-icon hidden-phone hidden-tablet">
+                                                                               <i class="icon-paper-clip"></i>
+                                                                           </td>
+                                                                           <td class="cell-time align-right">
+                                                                               Jan 11
+                                                                           </td>
+                                                                       </tr>
+                                                                       <tr class="read">
+                                                                           <td class="cell-check">
+                                                                               <input type="checkbox" class="inbox-checkbox">
+                                                                           </td>
+                                                                           <td class="cell-icon">
+                                                                               <i class="icon-star"></i>
+                                                                           </td>
+                                                                           <td class="cell-author hidden-phone hidden-tablet">
+                                                                               An unread message
+                                                                           </td>
+                                                                           <td class="cell-title">
+                                                                               This is how an unread message looks alike.
+                                                                           </td>
+                                                                           <td class="cell-icon hidden-phone hidden-tablet">
+                                                                               <i class="icon-paper-clip-no"></i>
+                                                                           </td>
+                                                                           <td class="cell-time align-right">
+                                                                               Jan 10
+                                                                           </td>
+                                                                       </tr>-->
                                         </tbody>
                                     </table>
 

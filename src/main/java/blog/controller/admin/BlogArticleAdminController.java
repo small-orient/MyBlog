@@ -2,6 +2,7 @@ package blog.controller.admin;
 
 import blog.entity.BlogArticle;
 import blog.entity.PageBean;
+import blog.entity.ResultInfo;
 import blog.service.BlogArticleService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -68,4 +69,93 @@ public class BlogArticleAdminController {
 
         return resultArticleList;
     }
+
+
+        //储存文章类型
+        @RequestMapping("/save")
+        public  @ResponseBody String save(
+                    @RequestParam(value = "typeName") String typeName,
+                    @RequestParam(value = "orderNo") String orderNo
+                    ){
+
+            //封装数据
+            BlogArticle blogArticle = new BlogArticle();
+            if (typeName != "" && typeName.length() >0){
+                blogArticle.setTypeName(typeName);
+            }
+
+            int orderNumber = 0;
+            if (orderNo != "" && orderNo.length() >0){
+                orderNumber = Integer.parseInt(orderNo);
+                blogArticle.setOrderNo(orderNumber);
+            }
+
+
+
+            //封装结果信息
+            ResultInfo info = new ResultInfo();
+            //调用services层保存
+            Integer count = blogArticleService.add(blogArticle);
+            if (count != 0){
+                //保存成功
+                info.setFlag(true);
+            }else {
+                info.setFlag(false);
+                info.setErrorInfo("保存失败，请重试！");
+            }
+
+            //返回json
+            ObjectMapper mapper = new ObjectMapper();
+            String resultInfo = "";
+            try {
+                resultInfo = mapper.writeValueAsString(info);
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+            }
+            return resultInfo;
+        }
+
+
+        //修改文章类型
+        @RequestMapping("/relook")
+        public @ResponseBody String relook(
+                @RequestParam(value ="id") int id
+                ){
+
+            //根据前台Id查询文章数据回显至输入框
+            BlogArticle blogArticle = blogArticleService.findById(id);
+
+            //返回json
+            ObjectMapper mapper = new ObjectMapper();
+            String result = "";
+            try {
+                result = mapper.writeValueAsString(blogArticle);
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+            }
+            return result;
+        }
+
+    //修改文章类型
+    @RequestMapping("/update")
+    public @ResponseBody String update(
+            @RequestParam(value ="id") int id,
+            @RequestParam(value ="typeName_update") String typeName_update,
+            @RequestParam(value ="orderNo_update") String orderNo_update
+    ){
+
+        Integer count = blogArticleService.update(id, typeName_update, orderNo_update);
+
+        //返回json
+        ObjectMapper mapper = new ObjectMapper();
+        String result = "";
+        try {
+            result = mapper.writeValueAsString(count);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+        return result;
+    }
+
+
 }

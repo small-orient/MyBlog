@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.List;
-import java.util.Map;
+
 
 /**
  * 博客文章类别管理Service实现类
@@ -73,8 +73,17 @@ public class BlogArticleServiceImpl implements BlogArticleService {
 
     //修改单条博客文章
     @Override
-    public Integer update(BlogArticle blogArticle) {
-        return blogArticleDao.update(blogArticle);
+    public Integer update(int id,String typeName,String orderNo) {
+
+        BlogArticle blogArticle = blogArticleDao.findById(id);
+
+        blogArticle.setTypeName(typeName);
+        int orderNo_ud = 0;
+        orderNo_ud = Integer.parseInt(orderNo);
+        blogArticle.setOrderNo(orderNo_ud);
+
+       return blogArticleDao.update(blogArticle);
+
     }
 
     //根据Id删除单条博客文章
