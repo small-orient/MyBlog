@@ -16,141 +16,67 @@
         <script>
 
             $(function () {
-                //调用分页方法
+
+                //调用分页方法：其中包含了添加、修改、删除数据方法（因为没使用框架，复选框id与数据库数据的编号需对应才能进行CRUD操作，所以写在了里面）
                 load();
 
-                //添加文章类型方法
+
+                /*--------------------------------分割线--------------------------------*/
+
+                //添加文章类型方法：
+                //1.给确认添加按钮增加一个点击事件，保存输入值
                 $("#add_submit").click(function () {
                     var typeName;
                     var orderNo;
                     typeName_test = $("#typeName").val();
                     orderNo_test = $("#orderNo").val();
-                    if (typeName_test == '' && typeName_test.length <= 0 ||orderNo_test == '' && orderNo_test.length <= 0){
+                    //1.1判断输入值是否为空
+                    if (typeName_test == '' && typeName_test.length <= 0 || orderNo_test == '' && orderNo_test.length <= 0) {
                         alert("请输入数据")
-                    }else {
+                    } else {
+                        //1.2 不为空则赋值，得到ajax参数
                         typeName = $("#typeName").val();
                         orderNo = $("#orderNo").val();
                     }
-
-                        $.get("admin/blogArticle/save",{typeName:typeName,orderNo:orderNo},function (info) {
-                            if (info.flag){
-                                //保存成功
-                                $("#addMsg").html("保存成功！");
-                                //重置输入框
-                                $("#typeName").val('');
-                                $("#orderNo").val('');
-                                //刷新当前页面
-                                $(".btn btn-default").click(function () {
-                                    location.reload();
-                                })
-
-                            }else {
-                                //保存失败
-                                $("#addMsg").html(info.errorInfo);
-
-                            }
-
-                        },"json")
-                })
-
-
-
-                //修改单条文章类型方法：先回显，再更新
-                $("#update").click(function () {
-                    var checkBox = $('input[name = ArticleType]'); //复选框对象
-                    var count = 0; //继续被选择的复选框数量
-                    var id = 0; //复选框对应的数据编号顺序
-                    //遍历复选框
-                    for (var i = 0; i < checkBox.length; i++){
-                        //如果被选择
-                        if (checkBox[i].checked){
-                            //记录+1
-                            id = i+1;
-                            count = count +1;
+                    //2.发送ajax请求，将参数保存
+                    $.get("admin/blogArticle/save", {typeName: typeName, orderNo: orderNo}, function (info) {
+                        if (info.flag) {
+                            //2.1保存成功，提示
+                            $("#addMsg").html("保存成功！");
+                            //2.2重置输入框
+                            $("#typeName").val('');
+                            $("#orderNo").val('');
+                            //2.3给关闭按钮添加点击事件，刷新当前页面
+                            $("#addClose").click(function () {
+                                location.reload();
+                            })
+                        } else {
+                            //2.4保存失败，提示
+                            $("#addMsg").html(info.errorInfo);
                         }
-                    }
-
-                    //如果被选择复选框数量大于1个，点击修改按钮时，提示
-                    if (count > 1 ){
-                        alert("只能选择单条数据进行更改！");
-                    }
-
-                    if (count == 0){
-                        //如果一个都没选，点击修改按钮时，也给提示
-                        alert("请您选择需要修改的一条数据！");
-                    }
-
-                    if (count == 1) {
-                        var typeName_ud;
-                        var newTypeName_ud;
-                        var orderNo_ud;
-                        var newOrderNo_ud;
-                        //发送ajax请求回显所选择的数据
-                        $.get("admin/blogArticle/relook", {id:id}, function (BlogArticle) {
-                            //回显值
-                            $("#typeName_update").val(BlogArticle.typeName);
-                            $("#orderNo_update").val(BlogArticle.orderNo);
-
-                            //打开修改模态框
-                            $("#updateModal").modal('show');
-
-                            //第一条数据如果改变，则保存新数据，传递给后台
-                            $("#typeName_update").focus(function () {
-                                $(this).attr("typeName", $(this).val()); //将当前值存入自定义属性
-                            }).blur(function () {
-                                 typeName_ud = ($(this).attr("typeName")); //获取原值
-                                 newTypeName_ud = ($(this).val()); //获取当前值
-
-                            })
-
-                            //第二条数据如果改变，则保存新数据，传递给后台
-                            $("#orderNo_update").focus(function () {
-                                $(this).attr("orderNo", $(this).val()); //将当前值存入自定义属性
-                            }).blur(function () {
-                               orderNo_ud = ($(this).attr("orderNo")); //获取原值
-                               newOrderNo_ud = ($(this).val()); //获取当前值
-                                if ( typeName_ud != newTypeName_ud | orderNo_ud != newOrderNo_ud) {
-                                    //给保存修改按钮加一个点击事件，保存变化值
-                                    $("#update_submit").click(function () {
-                                        typeName_update = newTypeName_ud;
-                                        orderNo_update = newOrderNo_ud;
-
-                                        update(id,typeName_update,orderNo_update);
-                                        $("#typeName_update").val('');
-                                        $("#orderNo_update").val('');
-
-                                    })
-                                }
-                            })
-
-                        },"json")
-
-
-                    }
-
-
+                    }, "json")
                 })
-
-
 
             })
 
+            /*--------------------------------分割线--------------------------------*/
 
-
-            //修改类型方法
-            function update(id,typeName_update,orderNo_update) {
-                $.get("admin/blogArticle/update",{id:id,typeName_update:typeName_update,orderNo_update:orderNo_update},function (count) {
+            //修改类型外部调用方法
+            function update(id_update,typeName_update,orderNo_update) {
+                $.get("admin/blogArticle/update",{id_update:id_update,typeName_update:typeName_update,orderNo_update:orderNo_update},function (count) {
                         if (count != null && count.length >0){
-                            alert("修改成功！")
+                            //确认数据修改后移除模态框
+                            alert("修改成功！");
+                            //修改成功后刷新页面
+                            location.reload();
+
+                        }else {
+                            alert("修改失败！");
                         }
                 })
             }
 
-
-
-
-
-
+            /*--------------------------------分割线--------------------------------*/
 
             //封装分页方法
             function load(currentPage) {
@@ -171,7 +97,7 @@
                             */
                         //分页页码
                         var lis = "";
-                        //定义首页
+                        //定义首页：因为后台当前页默认为1，故首页不用传页码数据
                         var firstPage = '<li><a href="javascript:load()">首页</a></li>';
                         lis += firstPage;
                         //定义上一页
@@ -235,7 +161,7 @@
                         //开头的tr
                         var titleTr = '<tr class="heading">\n' +
                             '                                                <td class="cell-check">\n' +
-                            '                                                    <input type="checkbox"   class="inbox-checkbox">\n' +
+                            '                                                    <input type="checkbox"  id="ArticleTypeTitle" name="ArticleTypeTitle" class="inbox-checkbox">\n' +
                             '                                                </td>\n' +
                             '                                                <td class="cell-icon">\n' +
                             '                                                </td>\n' +
@@ -259,7 +185,7 @@
 
                             var tr = '  <tr class="unread">\n' +
                                 '                <td class="cell-check">\n' +
-                                '                <input type="checkbox" name="ArticleType" class="inbox-checkbox">\n' +
+                                '                <input type="checkbox"  id="ArticleType" name="ArticleType" class="inbox-checkbox">\n' +
                                 '                </td>               \n' +
                                 '                <td class="cell-icon">\n' +
                                 '                <i class="icon-star"></i>\n' +
@@ -283,7 +209,127 @@
                         $("#blogArticleData").html(trs);
 
 
+                        /*-----------内部分割线：删除方法------------*/
+
+                        //删除文章类型方法：因为要将获取的复选框和编号对应上，才能删除对应数据库数据，故将删除方法写在开始加载页面的方法中，才能获取数据编号ID
+                        //1 给删除按钮添加点击事件，发送ajax请求，将ids传递至后台
+                        $("#delete").click(function () {
+                            //1.1 遍历复选框，获得选择的复选框编号
+                            var checkBox = $('input[name = ArticleType]'); //复选框对象
+                            var ids = [] ; //复选框对应的数据编号顺序数组
+                            //1.2 遍历复选框
+                            for (var i = 0; i < checkBox.length; i++) {
+                                if (checkBox[i].checked) {
+                                    //1.3根据分页查询的数据获取每条数据的编号id
+                                    id_delete = pb.resultList[i].id;
+                                    //1.4得到所选择的id数组
+                                    ids.push(id_delete);
+                                }
+                            }
+                            //1.4 判断是否有选中数据删除
+                            if (ids.length <= 0 ){
+                                alert("请选择要删除的数据！");
+                            }else {
+                                //1.5 提示是否删除
+                                $("#deleteTip").modal('show');
+                                $("#tip_delete").html("确定要删除这"+ids.length+"条数据吗？");
+                                //1.6 给确认按钮添加点击事件
+                                $("#confirm_delete").click(function () {
+                                    //2 发送ajax请求，判断删除效果
+                                    $.post("admin/blogArticle/delete",{ids:ids},function (info) {
+                                        //2.1获取后台传递的提示信息，前台提示用户
+                                        if (info.flag){
+                                            alert("删除成功！");
+                                            location.reload();
+                                        }else {
+                                            alert("删除失败，请重试！");
+                                        }
+                                    },"json")
+                                })
+                            }
+                        })
+
+                        /*-----------内部分割线:修改方法------------*/
+                        //修改单条文章类型方法：
+                        //1.给修改按钮添加点击事件，先回显，再更新
+                        $("#update").click(function () {
+                            //1.1获取复选框选中对象
+                            var checkBox = $('input[name = ArticleType]'); //复选框对象
+                            var count = 0; //记录被选择的复选框数量
+                            var id_update = 0; //复选框对应的数据编号顺序（后面用作回显查询数据Id）
+                            //1.1.1遍历复选框，记录被选择复选框个数与id
+                            for (var i = 0; i < checkBox.length; i++) {
+                                //如果被选择
+                                if (checkBox[i].checked) {
+                                    //记录+1
+                                    id_update = pb.resultList[i].id;
+                                    count = count + 1;
+                                }
+                            }
+                            //1.2如果被选择复选框数量大于1个，点击修改按钮时，提示
+                            if (count > 1) {
+                                alert("只能选择单条数据进行更改！");
+                            }
+                            //1.3如果一个都没选，点击修改按钮时，也给提示
+                            if (count == 0) {
+                                alert("请您选择需要修改的一条数据！");
+                            }
+                            //1.4如果选择了一个，则发送ajax请求回显数据
+                            if (count == 1) {
+
+                                var typeName_ud; //定义回显原值
+                                var newTypeName_ud; //定义改变的TypeName值
+                                var orderNo_ud; //定义回显原值
+                                var newOrderNo_ud; //定义改变的orderNo值
+
+                                //2.发送ajax请求回显所选择的数据
+                                $.get("admin/blogArticle/relook", {id_update: id_update}, function (BlogArticle) {
+                                    //2.1获取回显值
+                                    $("#typeName_update").val(BlogArticle.typeName);
+                                    $("#orderNo_update").val(BlogArticle.orderNo);
+                                    //2.2打开修改模态框
+                                    $("#updateModal").modal('show');
+                                    //2.3第一条数据如果改变，则保存新数据
+                                    $("#typeName_update").focus(function () {
+                                        $(this).attr("typeName", $(this).val()); //将当前值存入自定义属性
+                                    }).blur(function () {
+                                        typeName_ud = ($(this).attr("typeName")); //获取原值
+                                        newTypeName_ud = ($(this).val()); //获取当前值
+                                    })
+                                    //2.4第二条数据如果改变，则保存新数据，传递给后台
+                                    $("#orderNo_update").focus(function () {
+                                        $(this).attr("orderNo", $(this).val()); //将当前值存入自定义属性
+                                    }).blur(function () {
+                                        orderNo_ud = ($(this).attr("orderNo")); //获取原值
+                                        newOrderNo_ud = ($(this).val()); //获取当前值
+                                        if (typeName_ud != newTypeName_ud | orderNo_ud != newOrderNo_ud) {
+                                            //2.5 给保存修改按钮加一个点击事件，保存变化值
+                                            $("#update_submit").click(function () {
+                                                typeName_update = newTypeName_ud;
+                                                orderNo_update = newOrderNo_ud;
+                                                //打开确认提示框
+                                                $("#updateTip").modal('show');
+                                                $("#tip_update").html("确定要修改吗？")
+                                                //给确认按钮添加点击事件
+                                                $("#confirm_update").click(function () {
+                                                    //调用更新方法修改数据
+                                                    update(id_update, typeName_update, orderNo_update);
+                                                    //数据框数据清空，给用户认为数据已经传输
+                                                    $("#typeName_update").val('');
+                                                    $("#orderNo_update").val('');
+                                                })
+                                            })
+                                        }
+                                    })
+
+                                }, "json")
+                            }
+                        })
+
+                        /*-----------内部分割线：修改方法结束------------*/
+
                     },"json")
+
 
             }
 
@@ -417,7 +463,7 @@
 
                                     <!--增删改信息按钮-->
                                     <div class="pull-right" >
-                                        <button class="btn btn-danger " data-toggle="modal" data-target="#deleteModal" id="delete">删除</button>
+                                        <button class="btn btn-danger "  id="delete">删除</button>
                                     </div>
                                     <div class="pull-right" >
                                         <button class="btn btn-info "  id="update">更改</button>
@@ -483,7 +529,7 @@
                                             <!-- 添加模态框（Modal） -->
                                             <div class="modal fade" id="addModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
                                                 <div class="modal-dialog">
-                                                    <div class="modal-content">
+                                                    <div class="modal-content" >
                                                         <div class="modal-header">
                                                             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                                                             <h4 class="modal-title" id="myAdd">添加一条博客类型记录</h4>
@@ -498,7 +544,7 @@
 
                                                         </div>
                                                         <div class="modal-footer">
-                                                            <button type="button" class="btn btn-default"   data-dismiss="modal">关闭</button>
+                                                            <button type="button" class="btn btn-default" id="addClose"  data-dismiss="modal">关闭</button>
                                                             <button type="button" class="btn btn-primary" id="add_submit">保存</button>
                                                         </div>
                                                     </div><!-- /.modal-content -->
@@ -508,7 +554,7 @@
                                             <!-- 修改模态框（Modal） -->
                                             <div class="modal fade" id="updateModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
                                                 <div class="modal-dialog">
-                                                    <div class="modal-content">
+                                                    <div class="modal-content" >
                                                         <div class="modal-header">
                                                             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                                                             <h4 class="modal-title" id="myUpdate">修改一条博客类型记录</h4>
@@ -556,24 +602,47 @@
                                             </div>
 
 
-                                            <!--确认提示框-->
-                                            <div class="modal fade" id="tip" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
-                                                <div class="modal-dialog" role="document">
-                                                    <div class="modal-content">
+                                            <!--修改确认提示框-->
+                                            <div class="modal fade" id="updateTip" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+                                                <div class="modal-dialog " role="document">
+                                                    <div class="modal-content" >
                                                         <div class="modal-header">
                                                             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
-                                                            <h4 class="modal-title" id="deleteModalLabel">确认框</h4>
+                                                            <h4 class="modal-title" id="updateModalLabel">提示</h4>
                                                         </div>
                                                         <div class="modal-body">
                                                             <form>
                                                                 <div class="form-group">
-                                                                    <label  class="control-label">确定要删除吗？</label>
+                                                                    <label  class="control-label" id="tip_update">确定要修改吗？</label>
                                                                 </div>
                                                             </form>
                                                         </div>
                                                         <div class="modal-footer">
                                                             <button type="button" class="btn btn-default" data-dismiss="modal">返回</button>
-                                                            <button type="button" class="btn btn-primary" id="confirm">确认</button>
+                                                            <button type="button" class="btn btn-primary" id="confirm_update">确认</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!--删除确认提示框-->
+                                            <div class="modal fade" id="deleteTip" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+                                                <div class="modal-dialog " role="document">
+                                                    <div class="modal-content" >
+                                                        <div class="modal-header">
+                                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+                                                            <h4 class="modal-title" id="deleteModalLabel">提示</h4>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <form>
+                                                                <div class="form-group">
+                                                                    <label  class="control-label" id="tip_delete">确定要修改吗？</label>
+                                                                </div>
+                                                            </form>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-default" data-dismiss="modal">返回</button>
+                                                            <button type="button" class="btn btn-primary" id="confirm_delete">确认</button>
                                                         </div>
                                                     </div>
                                                 </div>

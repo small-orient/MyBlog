@@ -28,5 +28,5 @@ public interface BlogArticleService {
     public Integer update(int id,String typeName,String orderNo);
 
     //根据Id删除单条博客文章
-    public Integer delete(Integer id);
+    public Integer delete(Integer[] ids);
 }

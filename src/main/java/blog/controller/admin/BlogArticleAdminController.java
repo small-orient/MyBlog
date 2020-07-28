@@ -119,7 +119,7 @@ public class BlogArticleAdminController {
         //修改文章类型
         @RequestMapping("/relook")
         public @ResponseBody String relook(
-                @RequestParam(value ="id") int id
+                @RequestParam(value ="id_update") int id
                 ){
 
             //根据前台Id查询文章数据回显至输入框
@@ -139,18 +139,48 @@ public class BlogArticleAdminController {
     //修改文章类型
     @RequestMapping("/update")
     public @ResponseBody String update(
-            @RequestParam(value ="id") int id,
+            @RequestParam(value ="id_update") int id,
             @RequestParam(value ="typeName_update") String typeName_update,
             @RequestParam(value ="orderNo_update") String orderNo_update
     ){
 
         Integer count = blogArticleService.update(id, typeName_update, orderNo_update);
-
         //返回json
         ObjectMapper mapper = new ObjectMapper();
         String result = "";
         try {
             result = mapper.writeValueAsString(count);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+        return result;
+    }
+
+
+    //删除文章类型
+    @RequestMapping("/delete")
+    public @ResponseBody String delete(
+            @RequestParam(value ="ids[]") Integer[] ids){
+
+
+            Integer count = blogArticleService.delete(ids);
+
+
+        //定义返回提示信息
+        ResultInfo info = new ResultInfo();
+
+        if (count == 1){
+            info.setFlag(true);
+        }else {
+            info.setFlag(false);
+        }
+
+
+        //返回json
+        ObjectMapper mapper = new ObjectMapper();
+        String result = "";
+        try {
+            result = mapper.writeValueAsString(info);
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }

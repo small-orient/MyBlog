@@ -39,7 +39,6 @@ public class BlogArticleServiceImpl implements BlogArticleService {
         int start = pageBean.getStart();
         int end = pageBean.getEnd();
 
-        System.out.println(start +"--"+end);
         //根据dao查询到的文章数据返回list
         List<BlogArticle> articleList = blogArticleDao.list(start, end);
         //添加到pagebean中返回
@@ -77,10 +76,12 @@ public class BlogArticleServiceImpl implements BlogArticleService {
 
         BlogArticle blogArticle = blogArticleDao.findById(id);
 
-        blogArticle.setTypeName(typeName);
-        int orderNo_ud = 0;
-        orderNo_ud = Integer.parseInt(orderNo);
-        blogArticle.setOrderNo(orderNo_ud);
+            blogArticle.setTypeName(typeName);
+            int orderNo_ud = 0;
+            orderNo_ud = Integer.parseInt(orderNo);
+            blogArticle.setOrderNo(orderNo_ud);
+
+
 
        return blogArticleDao.update(blogArticle);
 
@@ -88,7 +89,23 @@ public class BlogArticleServiceImpl implements BlogArticleService {
 
     //根据Id删除单条博客文章
     @Override
-    public Integer delete(Integer id) {
-        return blogArticleDao.delete(id);
+    public Integer delete(Integer[] ids) {
+        Integer count = 0;
+        Integer resultInt = 0; //返回数据
+        for (Integer id :ids){
+            count = blogArticleDao.delete(id);
+           //每删除一个就判断一次是否删除成功
+            System.out.println(count);
+            if (count == 1){
+                //定义返回数据
+                resultInt = 1;
+            }else {
+                resultInt = 0;
+            }
+        }
+
+
+        return resultInt;
+
     }
 }
