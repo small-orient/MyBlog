@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="blog.dao.BlogDao">
+
+    <resultMap id="BlogResult" type="Blog">
+        <id property="id" column="id"/>
+        <result property="title" column="title"/>
+        <result property="summary" column="summary"/>
+        <result property="releaseDate" column="releaseDate"/>
+        <result property="clickHit" column="clickHit"/>
+        <result property="replyHit" column="replyHit"/>
+        <result property="content" column="content"/>
+        <result property="keyWord" column="keyWord"/>
+        <association property="blogArticle"
+                      column="articleTypeId" select="blog.dao.BlogArticleDao.findById"/>
+
+    </resultMap>
+
+    <!--无参查询所有博客列表：按发表日期降序，供首页使用 *-->
+    <select id="countList"  resultMap="BlogResult">
+         select date_format(releaseDate,'%Y年%m月') releaseDateStr,count(id) blogCount
+            from t_blog group by date_format(releaseDate,'%Y年%m月')
+            order by date_format(releaseDate,'%Y年%m月') desc
+    </select>
+
+    <!--带参查询所有博客列表：按发表日期降序 *-->
+    <select id="findList" parameterType="Map" resultMap="BlogResult">
+         select * from t_blog
+          <where>
+              <if test="title != null and title != ''">
+                  and title like #{title}
+              </if>
+
+              <if test="articleTypeId != null and articleTypeId != ''">
+                  and articleTypeId = #{blogArticle.id}
+              </if>
+
+              <if test="releaseDateStr != null and releaseDateStr != ''">
+                  and date_format(releaseDate,'%Y年%m月') = #{releaseDateStr}
+              </if>
+          </where>
+               order by releaseDate desc
+                <if test="start != null and end != null">
+                    limit #{start}m,#{end}
+                </if>
+    </select>
+
+    <!--带参数查询博客总数*-->
+    <select id="getTotal" parameterType="Map" resultType="Long">
+        select count(id) from t_blog
+        <where>
+            <if test="title != null and title != ''">
+                and title like #{title}
+            </if>
+
+
+            <if test="articleTypeId != null and articleTypeId != ''">
+                and articleTypeId = #{blogArticle.id}
+            </if>
+
+            <if test="releaseDateStr != null and releaseDateStr != ''">
+                and date_format(releaseDate,'%Y年%m月') = #{releaseDateStr}
+            </if>
+        </where>
+    </select>
+
+    <!--根据博客主键Id查询单条博客信息*：-->
+    <select id="findById" parameterType="Integer" resultMap="BlogResult">
+        select count(id) from t_blog where id = #{id}
+    </select>
+
+    <!--添加单条博客 *-->
+    <insert id="add"  useGeneratedKeys="true" keyProperty="id" parameterType="Blog">
+        insert into t_blog values (null,#{title},#{summary},now(),0,0,#{content},#{blogArticle.id},#{keyWord})
+    </insert>
+
+    <!--修改单条博客 *-->
+    <update id="update" parameterType="Blog" >
+        update t_blog
+        <set>
+            <if test="title != null and title !=''">
+                title = #{title}
+            </if>
+
+            <if test="summary != null and summary !=''">
+                summary = #{summary}
+            </if>
+
+            <if test="content != null and content !=''">
+                content = #{content}
+            </if>
+
+            <if test="blogArticle.id != null ">
+                articleTypeId = #{blogArticle.id}
+            </if>
+
+            <if test="clickHit != null ">
+                clickHit = #{clickHit}
+            </if>
+
+            <if test="replyHit != null">
+                replyHit = #{replyHit}
+            </if>
+
+            <if test="keyWord != null and keyWord !=''">
+                keyWord = #{keyWord}
+            </if>
+        </set>
+
+        where id = #{id}
+    </update>
+
+
+    <!--删除博客 *-->
+    <delete id="delete" parameterType="Integer" >
+        delete from t_blog where id = #{id}
+    </delete>
+
+
+
+
+</mapper>
