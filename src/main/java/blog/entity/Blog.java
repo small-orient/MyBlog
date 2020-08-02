@@ -14,7 +14,7 @@ public class Blog implements Serializable {
     private Integer clickHit; //点击数
     private Integer replyHit; //评论数
     private String content; //内容
-    private BlogArticle blogArticle; //所属博客文章类型 对应数据库中的articleTypeId
+    private BlogArticle blogArticle; //所属博客文章类型 从中也可以获取数据库中的articleTypeId，从而与数据库对应上
     private String keyWord; //关键字
 
     //另外添加的操作字段

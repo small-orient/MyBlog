@@ -25,7 +25,6 @@ public class BlogServiceImpl implements BlogService {
     }
 
 
-
     @Override
     public Blog findById(Integer id) {
         return blogDao.findById(id);

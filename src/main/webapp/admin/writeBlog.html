@@ -11,6 +11,9 @@
     <link type="text/css" href='http://fonts.googleapis.com/css?family=Open+Sans:400italic,600italic,400,600'
         rel='stylesheet'>
 
+    <script src="../static/scripts/jquery-1.9.1.min.js" type="text/javascript"></script>
+    <script src="../static/scripts/jquery-ui-1.10.1.custom.min.js" type="text/javascript"></script>
+    <script src="../static/bootstrap/js/bootstrap.min.js" type="text/javascript"></script>
 
     <!--ueditor-->
     <script type="text/javascript" src="../static/ueditor/ueditor.config.js"></script>
@@ -23,21 +26,25 @@
     <script type="text/javascript">
         //发布博客方法
         function submitData(){
+
             var title = $("#title").val();
-            var ArticleTypeId = $("#ArticleTypeId").val();
+            /*var ArticleType = $("#ArticleType").val();,更改成下拉列表后需要更换下面方式获取值*/
+            var ArticleTypeText=$("#ArticleType option:selected");
+            var ArticleType = ArticleTypeText.text();
+
             var content = UE.getEditor('editor').getContent();
             var keyWord = $("#keyWord").val();
 
             if (title == null || title == ''){
                 alert("请输入标题！");
-            }else if (ArticleTypeId == null || ArticleTypeId == ''){
+            }else if (ArticleType == null || ArticleType == ''){
                 alert("请输入博客文章类别！");
             }else if (content == null || content == ''){
                 alert("请输入博客内容！");
             }else {
                 //有数据，ajax请求给后台传递数据
                 $.post("../admin/blog/save",
-                    {title:title,ArticleTypeId:ArticleTypeId,content:content,
+                    {title:title,ArticleType:ArticleType,content:content,
                         summary:UE.getEditor('editor').getContentTxt().substr(0,155),keyWord:keyWord},
                     function (Info) {
                         if (Info.flag){
@@ -51,6 +58,33 @@
             }
 
         }
+
+        $(function () {
+
+
+       /*
+       <option value="" class="ArticleTypeOption">请选择文章类别...</option>
+
+       * */
+            //做一个所属类别的下拉列表
+            opts = "";
+            opts += '<option value="" class="ArticleTypeOption">请选择文章类别...</option>';
+
+            $.post("../admin/blogArticle/typeName",{},function (Articles) {
+                for (var i = 0; i < Articles.length; i++){
+                    opt = '<option value="" class="ArticleTypeOption">'+Articles[i].typeName+'</option>';
+                    opts += opt;
+
+                }
+                $("#ArticleType").html(opts);
+
+            },"json")
+
+
+
+
+        })
+
     </script>
 
 </head>
@@ -122,7 +156,8 @@
                                     博客管理
                                 </a>
                                 <ul id="bkgl" class="collapse unstyled">
-                                    <li><a id="wzlx" href="message.html"><i class="icon-inbox"></i>文章类型 </a></li>
+                                    <li><a id="wzlx" href="ArticleType.html"><i class="icon-inbox"></i>文章类型 </a></li>
+                                    <li><a id="blogManage" href="blogManage.html"><i class="icon-inbox"></i>博客数据</a></li>
                                     <li><a id="plgl" href="#"><i class="icon-inbox"></i>评论管理 </a></li>
                                     <li><a href="writeBlog.html"><i class="menu-icon icon-book"></i>写博客 </a></li>
                                 </ul>
@@ -169,7 +204,12 @@
 
                         <tr>
                             <td width="100px">&nbsp;&nbsp;所属类别：</td>
-                            <td><input type="text" id="ArticleTypeId" name="ArticleTypeId.id" style="width: 550px;"></td>
+                            <td>
+                                <select type="text" id="ArticleType"  class="combo-box " name="ArticleTypeId.id" style="width: 180px;" contenteditable="false" >
+                                    <option value="" class="ArticleTypeOption">请选择文章类别...</option>
+
+                                </select>
+                            </td>
                         </tr>
 
                         <tr>
@@ -186,7 +226,7 @@
 
                         <tr>
                             <td width="100px"></td>
-                            <td><a href="javascript:submitData()" class="btn btn-primary">发布博客</a></td>
+                            <td><a href="javascript:submitData()" class="btn btn-primary pull-right">发布博客</a></td>
                         </tr>
                     </table>
                 </div>
@@ -210,8 +250,6 @@
 			<b class="copyright">&copy; 2014 Edmin - EGrappler </b>All rights reserved. - Collect from <a href="http://www.sucaihuo.com/" title="网页模板" target="_blank">网页模板</a>
 		</div>
     </div>
-    <script src="../static/scripts/jquery-1.9.1.min.js" type="text/javascript"></script>
-    <script src="../static/scripts/jquery-ui-1.10.1.custom.min.js" type="text/javascript"></script>
-    <script src="../static/bootstrap/js/bootstrap.min.js" type="text/javascript"></script>
+
 
 </body>

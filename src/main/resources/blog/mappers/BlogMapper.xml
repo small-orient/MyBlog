@@ -43,7 +43,7 @@
           </where>
                order by releaseDate desc
                 <if test="start != null and end != null">
-                    limit #{start}m,#{end}
+                    limit #{start},#{end}
                 </if>
     </select>
 
@@ -55,7 +55,6 @@
                 and title like #{title}
             </if>
 
-
             <if test="articleTypeId != null and articleTypeId != ''">
                 and articleTypeId = #{blogArticle.id}
             </if>
@@ -63,6 +62,7 @@
             <if test="releaseDateStr != null and releaseDateStr != ''">
                 and date_format(releaseDate,'%Y年%m月') = #{releaseDateStr}
             </if>
+
         </where>
     </select>
 

@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 
 /**
@@ -185,6 +186,22 @@ public class BlogArticleAdminController {
             e.printStackTrace();
         }
         return result;
+    }
+
+    @RequestMapping("/typeName")
+    public @ResponseBody String typeName(){
+        List<BlogArticle> blogArticles = blogArticleService.countList();
+
+
+        String Article = "";
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            Article = mapper.writeValueAsString(blogArticles);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+        return Article;
+
     }
 
 
