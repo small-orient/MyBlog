@@ -6,6 +6,7 @@ import blog.service.BlogService;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 @Service("blogService")
@@ -43,11 +44,28 @@ public class BlogServiceImpl implements BlogService {
 
     @Override
     public Integer update(Blog blog) {
+
+
         return blogDao.update(blog);
     }
 
     @Override
-    public Integer delete(Integer id) {
-        return blogDao.delete(id);
+    public Integer delete(Integer[] ids) {
+        //复制博客文章类型代码即可
+        Integer count = 0;
+        Integer resultInt = 0; //返回数据
+        for (Integer id :ids){
+            count = blogDao.delete(id);
+            //每删除一个就判断一次是否删除成功
+            if (count > 0){
+                //定义返回数据
+                resultInt = 1;
+            }else {
+                resultInt = 0;
+            }
+        }
+
+
+        return resultInt;
     }
 }

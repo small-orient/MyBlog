@@ -29,4 +29,7 @@ public interface BlogArticleService {
 
     //根据Id删除单条博客文章
     public Integer delete(Integer[] ids);
+
+    //根据文章类型查询单条文章信息
+    public BlogArticle findByTypeName(String typeName);
 }

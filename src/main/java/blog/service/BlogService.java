@@ -3,6 +3,7 @@ package blog.service;
 import blog.entity.Blog;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -26,6 +27,6 @@ public interface BlogService {
     //修改单条博客 *
     public Integer update(Blog blog);
 
-    //根据博客主键Id删除单条博客 *
-    public Integer delete(Integer id);
+    //根据博客主键Id数组删除博客
+    public Integer delete(Integer[] ids);
 }

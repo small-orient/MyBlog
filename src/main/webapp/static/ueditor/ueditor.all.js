@@ -23906,6 +23906,7 @@ UE.plugin.register('autoupload', function (){
     }
 });
 
+/*
 // plugins/autosave.js
 UE.plugin.register('autosave', function (){
 
@@ -24036,6 +24037,7 @@ UE.plugin.register('autosave', function (){
     }
 
 });
+*/
 
 // plugins/charts.js
 UE.plugin.register('charts', function (){

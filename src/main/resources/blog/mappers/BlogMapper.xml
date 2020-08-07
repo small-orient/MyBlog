@@ -68,7 +68,7 @@
 
     <!--根据博客主键Id查询单条博客信息*：-->
     <select id="findById" parameterType="Integer" resultMap="BlogResult">
-        select count(id) from t_blog where id = #{id}
+        select * from t_blog where id = #{id}
     </select>
 
     <!--添加单条博客 *-->
@@ -81,31 +81,32 @@
         update t_blog
         <set>
             <if test="title != null and title !=''">
-                title = #{title}
+                title = #{title},
             </if>
 
             <if test="summary != null and summary !=''">
-                summary = #{summary}
+                summary = #{summary},
             </if>
 
             <if test="content != null and content !=''">
-                content = #{content}
+                content = #{content},
             </if>
-
-            <if test="blogArticle.id != null ">
-                articleTypeId = #{blogArticle.id}
+            <if test="blogArticle != null">
+                <if test="blogArticle.id != null and blogArticle.id != '' ">
+                    articleTypeId = #{blogArticle.id},
+                </if>
             </if>
 
             <if test="clickHit != null ">
-                clickHit = #{clickHit}
+                clickHit = #{clickHit},
             </if>
 
             <if test="replyHit != null">
-                replyHit = #{replyHit}
+                replyHit = #{replyHit},
             </if>
 
             <if test="keyWord != null and keyWord !=''">
-                keyWord = #{keyWord}
+                keyWord = #{keyWord},
             </if>
         </set>
 

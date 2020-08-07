@@ -3,7 +3,7 @@
 <head>
     <meta charset=utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>写博客</title>
+    <title>修改博客</title>
     <link type="text/css" href="../static/bootstrap/css/bootstrap.min.css" rel="stylesheet">
     <link type="text/css" href="../static/bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet">
     <link type="text/css" href="../static/css/theme.css" rel="stylesheet">
@@ -14,6 +14,8 @@
     <script src="../static/scripts/jquery-1.9.1.min.js" type="text/javascript"></script>
     <script src="../static/scripts/jquery-ui-1.10.1.custom.min.js" type="text/javascript"></script>
     <script src="../static/bootstrap/js/bootstrap.min.js" type="text/javascript"></script>
+    <!--引入自定义获取参数Js-->
+    <script src="../static/js/getParameter.js"></script>
 
     <!--ueditor-->
     <script type="text/javascript" src="../static/ueditor/ueditor.config.js"></script>
@@ -24,33 +26,36 @@
 
 
     <script type="text/javascript">
+
         //发布博客方法
         function submitData(){
-
+            //获取跳转后页面传递过来的id
+            var id = getParameter("id");
             var title = $("#title").val();
             /*var ArticleType = $("#ArticleType").val();,更改成下拉列表后需要更换下面方式获取值*/
             var articleTypeText=$("#ArticleType option:selected");
             var articleType = articleTypeText.text();
+
             var content = UE.getEditor('editor').getContent();
             var keyWord = $("#keyWord").val();
 
             if (title == null || title == ''){
                 alert("请输入标题！");
-            }else if (articleType == '请选择文章类别...'){
+            }else if (articleType == null || articleType == ''){
                 alert("请输入博客文章类别！");
             }else if (content == null || content == ''){
                 alert("请输入博客内容！");
             }else {
-                //有数据，ajax请求给后台传递数据
+                //有数据，用ajax请求给后台传递数据
                 $.post("../admin/blog/save",
-                    {title:title,articleType:articleType,content:content,
+                    {id:id,title:title,articleType:articleType,content:content,
                         summary:UE.getEditor('editor').getContentTxt().substr(0,155),keyWord:keyWord},
                     function (Info) {
                         if (Info.flag){
-                            alert("博客发布成功！");
-                            location.reload();
+                            alert("博客修改成功！");
+                            location.href = "http://localhost:80/blog_war_exploded/admin/blogManage.html";
                         }else {
-                            alert("博客发布失败，请重试！");
+                            alert("博客修改失败，请重试！");
                         }
 
                 },"json")
@@ -58,31 +63,7 @@
 
         }
 
-        $(function () {
 
-
-       /*
-       <option value="" class="ArticleTypeOption">请选择文章类别...</option>
-
-       * */
-            //做一个所属类别的下拉列表
-            opts = "";
-            opts += '<option value="" class="ArticleTypeOption">请选择文章类别...</option>';
-
-            $.post("../admin/blogArticle/typeName",{},function (Articles) {
-                for (var i = 0; i < Articles.length; i++){
-                    opt = '<option value="" class="ArticleTypeOption">'+Articles[i].typeName+'</option>';
-                    opts += opt;
-
-                }
-                $("#ArticleType").html(opts);
-
-            },"json")
-
-
-
-
-        })
 
     </script>
 
@@ -193,7 +174,7 @@
                 <!--编辑区-->
                 <div class="panel panel-primary" style="padding: 10px; ">
                     <div class="panel-heading">
-                        <h3 class="panel-title">&nbsp;&nbsp;编写博客</h3>
+                        <h3 class="panel-title">&nbsp;&nbsp;修改博客</h3>
                     </div>
                     <table class="panel-body" cellspacing="20px">
                         <tr>
@@ -226,7 +207,7 @@
 
                         <tr>
                             <td width="100px"></td>
-                            <td><a href="javascript:submitData()" class="btn btn-primary pull-right">发布博客</a></td>
+                            <td><a href="javascript:submitData()" class="btn btn-primary pull-right">保存修改</a></td>
                         </tr>
                     </table>
                 </div>
@@ -234,8 +215,72 @@
 
     <!--调用ueditor-->
     <script type="text/javascript">
+
+        $(function () {
+            /*
+            <option value="" class="ArticleTypeOption">请选择文章类别...</option>
+
+            * */
+            //做一个所属类别的下拉列表
+            opts = "";
+            opts += '<option value="" class="ArticleTypeOption">请选择文章类别...</option>';
+
+            $.post("../admin/blogArticle/typeName",{},function (Articles) {
+                for (var i = 0; i < Articles.length; i++){
+                    //记得设置value值，方便后续做修改博客时，能够根据后台数据回显下拉选项数据
+                    opt = '<option value='+Articles[i].typeName+' class="ArticleTypeOption">'+Articles[i].typeName+'</option>';
+                    opts += opt;
+
+                }
+                $("#ArticleType").html(opts);
+
+            },"json")
+
+
+        })
+
+
+        //获取跳转后页面传递过来的id
+        var id = getParameter("id");
+
         //实例化编辑器
         var ue = UE.getEditor("editor");
+
+        //var ArticleTypeText=$("#ArticleType option:selected");
+
+        //加载跳转id数据
+        ue.addListener("ready",function () {
+            //通过ajax请求数据
+            UE.ajax.request("../admin/blog/findById",
+                {
+                    method:"post",
+                    asyc:false,
+                    data:{"id":id},
+                    dataType:"json",
+                    onsuccess:function (resultBlog) {
+                        resultBlog = eval("("+resultBlog.responseText+")");
+                        //分别给每个输入框回显值
+                        $("#title").val(resultBlog.title);
+                        $("#keyWord").val(resultBlog.keyWord);
+                        //遍历下拉选项
+                        $('#ArticleType option').each(function() {
+                            //若下拉选项值等于回显数据
+                           if (this.text == resultBlog.blogArticle.typeName){
+                               //将该选项设置为默认选中
+                               $('#ArticleType option[value='+resultBlog.blogArticle.typeName+']').attr('selected','selected');
+                               return;
+                           }
+
+                        });
+
+
+                        UE.getEditor("editor").setContent(resultBlog.content);
+
+                    }
+
+                }
+            );
+        })
     </script>
 
 

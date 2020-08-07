@@ -56,13 +56,13 @@
 
 
 
-            //查询方法
+            //搜索框添加查询方法
             function search(){
                 //给搜索按钮添加一个点击事件
                 $("#titleQuery").click(function () {
                     //获取搜索框的值
                     title = $("#blogTitle").val();
-                    //做一个页面跳转（因为跳的是原来的页面相当于刷新），传递title
+                    //做一个页面跳转（因为跳的是原来的页面相当于刷新），传递title值，用于AJAX请求
                     location.href = "http://localhost:80/blog_war_exploded/admin/blogManage.html?title="+title;
                 })
             }
@@ -198,6 +198,8 @@
                             newDate.setTime(date);
 
 
+
+
                             var tr = '  <tr class="unread">\n' +
                                 '                <td class="cell-check">\n' +
                                 '                <input type="checkbox"  id="blogData" name="blogData" class="inbox-checkbox">\n' +
@@ -205,7 +207,7 @@
                                 '                <td class="cell-icon">\n' +
                                 '                <i class="icon-star"></i>\n' +
                                 '                </td>          \n' +
-                                '            <td class="cell-title">\n' +
+                                '            <td class="cell-title" id="blogId">\n' +
                                 '                '+blogData.id+'\n' +
                                 '            </td>           \n' +
                                 '            <td class="cell-title ">\n' +
@@ -240,6 +242,77 @@
                         $("#blogData").html(trs);
 
 
+                        /*-----------内部分割线：删除方法------------*/
+                        var checkBox = $('input[name = blogData]'); //复选框对象,放在外面给修改方法一起用
+                        //与文章类型功能类似，复制部分代码
+                        //1 给删除按钮添加点击事件，发送ajax请求，将ids传递至后台
+                        $("#deleteBlog").click(function () {
+                            //1.1 遍历复选框，获得选择的复选框编号
+
+                            var ids = [] ; //复选框对应的数据编号顺序数组
+                            //1.2 遍历复选框
+                            for (var i = 0; i < checkBox.length; i++) {
+                                if (checkBox[i].checked) {
+                                    //1.3根据分页查询的数据获取每条数据的编号id
+                                    id_delete = $.trim($("#blogId").text()); //解释放在ArticleType.html同样删除方法里
+                                    //1.4得到所选择的id数组
+                                   /* alert(id_delete);*/
+                                    ids.push(id_delete);
+                                }
+                            }
+                            //1.4 判断是否有选中数据删除
+                            if (ids.length <= 0 ){
+                                alert("请选择要删除的数据！");
+                            }else {
+                                //1.5 提示是否删除
+                                $("#deleteTipBlog").modal('show');
+                                $("#tip_deleteBlog").html("确定要删除这"+ids.length+"条数据吗？");
+                                //1.6 给确认按钮添加点击事件
+                                $("#confirm_deleteBlog").click(function () {
+                                    //2 发送ajax请求，判断删除效果
+                                    $.post("../admin/blog/blogDelete",{ids:ids},function (info) {
+                                        //2.1获取后台传递的提示信息，前台提示用户
+                                        if (info.flag){
+                                            alert("删除成功！");
+                                            location.reload();
+                                        }else {
+                                            alert("删除失败，请重试！");
+                                        }
+                                    },"json")
+                                })
+                            }
+                        })
+
+                        /*-----------内部分割线:修改方法------------*/
+                        //给更改按钮添加点击事件
+                        $("#updateBlog").click(function () {
+                            //点击修改后,判断此时是否有选中某行
+                            var count = 0; //记录被选择的复选框数量
+                            var id_update = 0; //复选框对应的数据编号顺序（后面用作回显查询数据Id）
+                            //1.1.1遍历复选框，记录被选择复选框个数与id
+                            for (var i = 0; i < checkBox.length; i++) {
+                                //如果被选择
+                                if (checkBox[i].checked) {
+                                    //记录+1
+                                    id_update = $.trim($("#blogId").text());
+                                    count = count + 1;
+                                }
+                            }
+                            //1.2如果被选择复选框数量大于1个，点击修改按钮时，提示
+                            if (count > 1) {
+                                alert("只能选择单条数据进行更改！");
+                            }
+                            //1.3如果一个都没选，点击修改按钮时，也给提示
+                            if (count == 0) {
+                                alert("请您选择需要修改的一条数据！");
+                            }
+                            //1.4如果选择了一个，则发送ajax请求回显数据
+                            if (count == 1) {
+                                //跳转至博客修改页面
+                                location.href = "http://localhost:80/blog_war_exploded/admin/updateBlog.html?id="+id_update;
+                            }
+
+                        })
 
 
                     },"json")
@@ -358,9 +431,8 @@
                                     <h3>
                                         博客数据</h3>
                                 </div>
+
                                 <div class="module-option clearfix">
-
-
                                     <!--查询搜索框-->
                                     <form class="navbar-search pull-left input-append" action="#">
                                         <input type="text" class="span3" id="blogTitle" >
@@ -369,8 +441,19 @@
                                         </button>
                                     </form>
 
-
+                                    <!--增删改信息按钮-->
+                                    <div class="pull-right" >
+                                        <button class="btn btn-danger "  id="deleteBlog">删除</button>
+                                    </div>
+                                    <div class="pull-right" >
+                                        <button class="btn btn-info "  id="updateBlog">更改</button>
+                                    </div>
+                                    <div class="pull-right" >
+                                        <button class="btn btn-success " ><a href="writeBlog.html" style="color: white">添加</a></button>
+                                    </div>
                                 </div>
+
+
                                 <div class="module-body table">
                                     <table class="table table-message">
                                         <tbody id="blogData">
@@ -398,7 +481,7 @@
                                             <tr class="unread">
                                                 <!--复选框-->
                                                 <td class="cell-check">
-                                                    <input type="checkbox" class="inbox-checkbox">
+                                                    <input type="checkbox" name="blogData" class="inbox-checkbox">
                                                 </td>
                                                 <!--星星图标-->
                                                 <td class="cell-icon">
@@ -423,128 +506,80 @@
                                                 </td>
                                             </tr>
 
-                                            <!-- 添加模态框（Modal） -->
-                                            <div class="modal fade" id="addModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-                                                <div class="modal-dialog">
-                                                    <div class="modal-content" >
-                                                        <div class="modal-header">
-                                                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                                                            <h4 class="modal-title" id="myAdd">添加一条博客类型记录</h4>
-                                                        </div>
-                                                        <div class="modal-body">
-                                                            文章类别名称：
-                                                            <input type="text" id="typeName" name="typeName" required="true" ><br>
-
-                                                            文章类别序号：
-                                                           <input type="text" id="orderNo" name="orderNo" required="true" ><br>
-                                                            <span ><font color="#1e90ff" id="addMsg" ></font></span>
-
-                                                        </div>
-                                                        <div class="modal-footer">
-                                                            <button type="button" class="btn btn-default" id="addClose"  data-dismiss="modal">关闭</button>
-                                                            <button type="button" class="btn btn-primary" id="add_submit">保存</button>
-                                                        </div>
-                                                    </div><!-- /.modal-content -->
-                                                </div><!-- /.modal -->
-                                            </div>
 
                                             <!-- 修改模态框（Modal） -->
-                                            <div class="modal fade" id="updateModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                                            <div class="modal fade" id="updateModalBlog" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
                                                 <div class="modal-dialog">
                                                     <div class="modal-content" >
                                                         <div class="modal-header">
                                                             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                                                            <h4 class="modal-title" id="myUpdate">修改一条博客类型记录</h4>
+                                                            <h4 class="modal-title" id="myUpdateBlog">修改一条博客类型记录</h4>
                                                         </div>
                                                         <div class="modal-body">
                                                             文章类别名称：
-                                                            <input type="text" id="typeName_update" name="typeName" required="true" ><br>
+                                                            <input type="text" id="typeName_updateBlog" name="typeName" required="true" ><br>
 
                                                             文章类别序号：
-                                                            <input type="text" id="orderNo_update" name="orderNo" required="true" ><br>
-                                                            <span ><font color="#1e90ff" id="updateMsg" ></font></span>
+                                                            <input type="text" id="orderNo_updateBlog" name="orderNo" required="true" ><br>
+                                                            <span ><font color="#1e90ff" id="updateMsgBlog" ></font></span>
 
                                                         </div>
                                                         <div class="modal-footer">
                                                             <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
-                                                            <button type="button" class="btn btn-primary" id="update_submit">保存修改</button>
+                                                            <button type="button" class="btn btn-primary" id="update_submitBlog">保存修改</button>
                                                         </div>
                                                     </div><!-- /.modal-content -->
                                                 </div><!-- /.modal -->
                                             </div>
 
-                                            <!-- 删除模态框（Modal） -->
-                                            <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-                                                <div class="modal-dialog">
-                                                    <div class="modal-content">
-                                                        <div class="modal-header">
-                                                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                                                            <h4 class="modal-title" id="myModalLabel">删除一条博客类型记录</h4>
-                                                        </div>
-                                                        <div class="modal-body">
-                                                            文章类别名称：
-                                                            <input type="text" id="typeName_delete" name="typeName" required="true" ><br>
 
-                                                            文章类别序号：
-                                                            <input type="text" id="orderNo_delete" name="orderNo" required="true" ><br>
-                                                            <span ><font color="#1e90ff" id="Msg" ></font></span>
-
-                                                        </div>
-                                                        <div class="modal-footer">
-                                                            <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
-                                                            <button type="button" class="btn btn-primary" id="delete_submit">确认删除</button>
-                                                        </div>
-                                                    </div><!-- /.modal-content -->
-                                                </div><!-- /.modal -->
-                                            </div>
 
 
                                             <!--修改确认提示框-->
-                                            <div class="modal fade" id="updateTip" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+                                            <div class="modal fade" id="updateTipBlog" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
                                                 <div class="modal-dialog " role="document">
                                                     <div class="modal-content" >
                                                         <div class="modal-header">
                                                             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
-                                                            <h4 class="modal-title" id="updateModalLabel">提示</h4>
+                                                            <h4 class="modal-title" id="updateModalLabelBlog">提示</h4>
                                                         </div>
                                                         <div class="modal-body">
                                                             <form>
                                                                 <div class="form-group">
-                                                                    <label  class="control-label" id="tip_update">确定要修改吗？</label>
+                                                                    <label  class="control-label" id="tip_updateBlog">确定要修改吗？</label>
                                                                 </div>
                                                             </form>
                                                         </div>
                                                         <div class="modal-footer">
                                                             <button type="button" class="btn btn-default" data-dismiss="modal">返回</button>
-                                                            <button type="button" class="btn btn-primary" id="confirm_update">确认</button>
+                                                            <button type="button" class="btn btn-primary" id="confirm_updateBlog">确认</button>
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
 
                                             <!--删除确认提示框-->
-                                            <div class="modal fade" id="deleteTip" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+                                            <div class="modal fade" id="deleteTipBlog" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
                                                 <div class="modal-dialog " role="document">
                                                     <div class="modal-content" >
                                                         <div class="modal-header">
                                                             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
-                                                            <h4 class="modal-title" id="deleteModalLabel">提示</h4>
+                                                            <h4 class="modal-title" id="deleteModalLabelBlog">提示</h4>
                                                         </div>
                                                         <div class="modal-body">
                                                             <form>
                                                                 <div class="form-group">
-                                                                    <label  class="control-label" id="tip_delete">确定要修改吗？</label>
+                                                                    <label  class="control-label" id="tip_deleteBlog">确定要删除吗？</label>
                                                                 </div>
                                                             </form>
                                                         </div>
                                                         <div class="modal-footer">
                                                             <button type="button" class="btn btn-default" data-dismiss="modal">返回</button>
-                                                            <button type="button" class="btn btn-primary" id="confirm_delete">确认</button>
+                                                            <button type="button" class="btn btn-primary" id="confirm_deleteBlog">确认</button>
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
-
 
 
 

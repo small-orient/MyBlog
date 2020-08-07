@@ -11,6 +11,14 @@
         <result property="blogCount" column="blogCount"/>
     </resultMap>
 
+
+
+    <!--根据文章类型查询单条文章信息-->
+    <select id="findByTypeName" parameterType="String" resultMap="BlogArticleResult">
+        select * from t_blogarticle where typeName = #{typeName}
+
+    </select>
+
     <!--查询所有博客文章类型列表：无参查询-->
     <select id="countList" parameterType="String" resultMap="BlogArticleResult">
 

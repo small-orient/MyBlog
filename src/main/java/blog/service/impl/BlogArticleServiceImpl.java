@@ -95,8 +95,7 @@ public class BlogArticleServiceImpl implements BlogArticleService {
         for (Integer id :ids){
             count = blogArticleDao.delete(id);
            //每删除一个就判断一次是否删除成功
-            System.out.println(count);
-            if (count == 1){
+            if (count > 0){
                 //定义返回数据
                 resultInt = 1;
             }else {
@@ -107,5 +106,11 @@ public class BlogArticleServiceImpl implements BlogArticleService {
 
         return resultInt;
 
+    }
+
+    //根据文章类型查询单条文章信息
+    @Override
+    public BlogArticle findByTypeName(String typeName) {
+        return blogArticleDao.findByTypeName(typeName);
     }
 }
