@@ -67,6 +67,7 @@
                         if (count != null && count.length >0){
                             //确认数据修改后移除模态框
                             alert("修改成功！");
+
                             //修改成功后刷新页面
                             location.reload();
 
@@ -185,12 +186,12 @@
 
                             var tr = '  <tr class="unread">\n' +
                                 '                <td class="cell-check">\n' +
-                                '                <input type="checkbox"  id="ArticleType" name="ArticleType" class="inbox-checkbox">\n' +
+                                '                <input type="checkbox"   class="inbox-checkbox" name="blogTypeId" value='+articleData.id+'>\n' +
                                 '                </td>               \n' +
                                 '                <td class="cell-icon">\n' +
                                 '                <i class="icon-star"></i>\n' +
                                 '                </td>          \n' +
-                                '                <td class="cell-author hidden-phone hidden-tablet" id="blogTypeId">\n' +
+                                '                <td class="cell-author hidden-phone hidden-tablet"  name='+articleData.id+' >\n' +
                                 '                '+articleData.id+'\n' +
                                 '            </td>           \n' +
                                 '            <td class="cell-title">\n' +
@@ -215,23 +216,27 @@
                         //1 给删除按钮添加点击事件，发送ajax请求，将ids传递至后台
                         $("#delete").click(function () {
                             //1.1 遍历复选框，获得选择的复选框编号
-                            var checkBox = $('input[name = ArticleType]'); //复选框对象
                             var ids = [] ; //复选框对应的数据编号顺序数组
                             //1.2 遍历复选框
-                            for (var i = 0; i < checkBox.length; i++) {
-                                if (checkBox[i].checked) {
+                            //复选框对象
+                            $("input[name = 'blogTypeId']").each(function () {
+                                if($(this).is(":checked"))   {
                                     //1.3根据分页查询的数据获取每条数据的编号id
-                                           /*
+                                    /*
                                            id_delete = pb.resultList[i].id;
                                            这样写有BUG，因为这里已经跳出了遍历循环，获取的id值是不准确的，在正序的时候没看出来，到了blogManage.html
                                            页面显示数据为逆序，删除的时候仍是按顺序删除的*/
-                                    //新写法，获取td标签中的值
-                                    id_delete = $.trim($("#blogTypeId").text()); //获取的文本值有空格的话会获取不出值，故用trim去空格
-                                    /* alert(id_delete);*/
+
+                                    //新写法，在上面动态创建的复选框中添加value属性值，并且动态赋上对应id值，然后用val()方法获取value值即可
+                                    id_delete = $(this).val();
+                                  /*  alert(id_delete);*/
                                     //1.4得到所选择的id数组
                                     ids.push(id_delete);
                                 }
-                            }
+
+                            })
+
+
                             //1.4 判断是否有选中数据删除
                             if (ids.length <= 0 ){
                                 alert("请选择要删除的数据！");
@@ -247,9 +252,20 @@
                                         if (info.flag){
                                             alert("删除成功！");
                                             location.reload();
-                                        }else {
-                                            alert("删除失败，请重试！");
+                                        } else {
+
+                                            if (info.errorInfo == "1"){
+                                                alert("该类型被文章引用，不能删除!");
+                                                location.reload();
+                                            }else {
+                                                alert("删除失败，请重试！");
+                                            }
+
                                         }
+
+
+
+
                                     },"json")
                                 })
                             }
@@ -260,18 +276,20 @@
                         //1.给修改按钮添加点击事件，先回显，再更新
                         $("#update").click(function () {
                             //1.1获取复选框选中对象
-                            var checkBox = $('input[name = ArticleType]'); //复选框对象
                             var count = 0; //记录被选择的复选框数量
                             var id_update = 0; //复选框对应的数据编号顺序（后面用作回显查询数据Id）
                             //1.1.1遍历复选框，记录被选择复选框个数与id
-                            for (var i = 0; i < checkBox.length; i++) {
+                            //复选框对象
+                            $("input[name = 'blogTypeId']").each(function () {
                                 //如果被选择
-                                if (checkBox[i].checked) {
+                                if($(this).is(":checked"))  {
+                                    //记录当前编号值
+                                    id_update = $(this).val();
+                                    alert(id_update)
                                     //记录+1
-                                    id_update = $.trim($("#blogTypeId").text());
                                     count = count + 1;
                                 }
-                            }
+                            })
                             //1.2如果被选择复选框数量大于1个，点击修改按钮时，提示
                             if (count > 1) {
                                 alert("只能选择单条数据进行更改！");
@@ -290,6 +308,7 @@
 
                                 //2.发送ajax请求回显所选择的数据
                                 $.get("../admin/blogArticle/relook", {id_update: id_update}, function (BlogArticle) {
+
                                     //2.1获取回显值
                                     $("#typeName_update").val(BlogArticle.typeName);
                                     $("#orderNo_update").val(BlogArticle.orderNo);
@@ -302,30 +321,42 @@
                                         typeName_ud = ($(this).attr("typeName")); //获取原值
                                         newTypeName_ud = ($(this).val()); //获取当前值
                                     })
+
                                     //2.4第二条数据如果改变，则保存新数据，传递给后台
                                     $("#orderNo_update").focus(function () {
                                         $(this).attr("orderNo", $(this).val()); //将当前值存入自定义属性
                                     }).blur(function () {
                                         orderNo_ud = ($(this).attr("orderNo")); //获取原值
                                         newOrderNo_ud = ($(this).val()); //获取当前值
-                                        if (typeName_ud != newTypeName_ud | orderNo_ud != newOrderNo_ud) {
-                                            //2.5 给保存修改按钮加一个点击事件，保存变化值
-                                            $("#update_submit").click(function () {
-                                                typeName_update = newTypeName_ud;
-                                                orderNo_update = newOrderNo_ud;
-                                                //打开确认提示框
-                                                $("#updateTip").modal('show');
-                                                $("#tip_update").html("确定要修改吗？")
-                                                //给确认按钮添加点击事件
-                                                $("#confirm_update").click(function () {
-                                                    //调用更新方法修改数据
-                                                    update(id_update, typeName_update, orderNo_update);
-                                                    //数据框数据清空，给用户认为数据已经传输
-                                                    $("#typeName_update").val('');
-                                                    $("#orderNo_update").val('');
-                                                })
-                                            })
+
+                                    })
+
+                                    //2.5 给保存修改按钮加一个点击事件，保存变化值
+                                    $("#update_submit").click(function () {
+                                        var typeName_update ;
+                                        var orderNo_update;
+                                        if (typeName_ud != newTypeName_ud) {
+                                            typeName_update = newTypeName_ud;
+                                        }else {
+                                            typeName_update = typeName_ud;
                                         }
+
+                                        if (orderNo_ud != newOrderNo_ud){
+                                            orderNo_update = newOrderNo_ud;
+                                        }else {
+                                            orderNo_update = orderNo_ud;
+                                        }
+
+                                        //打开确认提示框
+                                        $("#updateTip").modal('show');
+                                        $("#tip_update").html("确定要修改吗？")
+                                        //给确认按钮添加点击事件
+                                        $("#confirm_update").click(function () {
+                                            //调用更新方法修改数据
+                                            update(id_update, typeName_update, orderNo_update);
+
+                                        })
+
                                     })
 
                                 }, "json")

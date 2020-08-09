@@ -71,6 +71,11 @@
         select * from t_blog where id = #{id}
     </select>
 
+    <!--根据博客外键文章类型Id查询单条博客信息*：-->
+    <select id="findByArticleTypeId" parameterType="Integer" resultType="Integer">
+        select count(id) from t_blog where articleTypeId = #{articleTypeId}
+    </select>
+
     <!--添加单条博客 *-->
     <insert id="add"  useGeneratedKeys="true" keyProperty="id" parameterType="Blog">
         insert into t_blog values (null,#{title},#{summary},now(),0,0,#{content},#{blogArticle.id},#{keyWord})

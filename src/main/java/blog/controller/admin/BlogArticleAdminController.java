@@ -4,6 +4,7 @@ import blog.entity.BlogArticle;
 import blog.entity.PageBean;
 import blog.entity.ResultInfo;
 import blog.service.BlogArticleService;
+import blog.service.BlogService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Controller;
@@ -21,9 +22,13 @@ import java.util.List;
 @Controller
 @RequestMapping({"/admin/blogArticle"})
 public class BlogArticleAdminController {
-
+    //博客文章类型注入
     @Resource
     private BlogArticleService blogArticleService;
+
+    //博客注入
+    @Resource
+    private BlogService blogService;
 
     /**
      * 查询博客类型列表
@@ -145,7 +150,22 @@ public class BlogArticleAdminController {
             @RequestParam(value ="orderNo_update") String orderNo_update
     ){
 
-        Integer count = blogArticleService.update(id, typeName_update, orderNo_update);
+        Integer count = 0;//记录返回数
+
+        //给个默认值，如果传过来没有值的话
+       if (typeName_update == null || typeName_update.length() <=0){
+           BlogArticle blogArticle = blogArticleService.findById(id);
+           String typeName = blogArticle.getTypeName();
+           typeName_update = typeName;
+       }
+
+        if (orderNo_update == null || orderNo_update.length() <=0){
+            BlogArticle blogArticle = blogArticleService.findById(id);
+            String orderNo= blogArticle.getTypeName();
+            orderNo_update = orderNo;
+        }
+
+       count = blogArticleService.update(id, typeName_update, orderNo_update);
         //返回json
         ObjectMapper mapper = new ObjectMapper();
         String result = "";
@@ -163,18 +183,39 @@ public class BlogArticleAdminController {
     public @ResponseBody String delete(
             @RequestParam(value ="ids[]") Integer[] ids){
 
-
-            Integer count = blogArticleService.delete(ids);
-
-
         //定义返回提示信息
         ResultInfo info = new ResultInfo();
+        Integer blogNum = 0;
+        for (Integer id : ids) {
 
-        if (count == 1){
-            info.setFlag(true);
-        }else {
-            info.setFlag(false);
-        }
+             /*
+             Integer count = blogArticleService.delete(ids);
+            因为博客文章类型表是博客表的外键，若删除的文章类型下有被某偏博客引用，则不能删除
+           */
+                //判断根据这个文章类型id是否能查询出博客文章，若能查出来，则提示不能删除
+                blogNum = blogService.findByArticleTypeId(id);
+            System.out.println(id);
+            System.out.println(blogNum);
+                if (blogNum > 0 ) {
+                    //"1"表示：
+                    info.setErrorInfo("1");
+                    info.setFlag(false);
+                } else {
+                    //可以删除该类型
+                    Integer deleteCount = blogArticleService.delete(id);
+                    if (deleteCount > 0 ){
+                        info.setFlag(true);
+                    }else {
+                        info.setFlag(false);
+                    }
+
+                }
+
+
+            }
+
+
+
 
 
         //返回json
@@ -188,6 +229,7 @@ public class BlogArticleAdminController {
         return result;
     }
 
+    //写博客下拉列表名称显示方法
     @RequestMapping("/typeName")
     public @ResponseBody String typeName(){
         List<BlogArticle> blogArticles = blogArticleService.countList();

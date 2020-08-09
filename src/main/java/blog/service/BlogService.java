@@ -18,6 +18,9 @@ public interface BlogService {
     //根据博客主键Id查询单条博客信息 *
     public Blog findById(Integer id);
 
+    //根据博客外键文章类型Id查询单条博客信息 *
+    public Integer findByArticleTypeId(Integer articleTypeId);
+
     //带参数查询博客总数 *
     public Long getTotal(Map<String,Object> map);
 

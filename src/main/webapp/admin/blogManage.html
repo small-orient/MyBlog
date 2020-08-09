@@ -202,7 +202,7 @@
 
                             var tr = '  <tr class="unread">\n' +
                                 '                <td class="cell-check">\n' +
-                                '                <input type="checkbox"  id="blogData" name="blogData" class="inbox-checkbox">\n' +
+                                '                <input type="checkbox"  id="blogData" name="blogId" class="inbox-checkbox" value='+blogData.id+'>\n' +
                                 '                </td>               \n' +
                                 '                <td class="cell-icon">\n' +
                                 '                <i class="icon-star"></i>\n' +
@@ -243,7 +243,6 @@
 
 
                         /*-----------内部分割线：删除方法------------*/
-                        var checkBox = $('input[name = blogData]'); //复选框对象,放在外面给修改方法一起用
                         //与文章类型功能类似，复制部分代码
                         //1 给删除按钮添加点击事件，发送ajax请求，将ids传递至后台
                         $("#deleteBlog").click(function () {
@@ -251,15 +250,15 @@
 
                             var ids = [] ; //复选框对应的数据编号顺序数组
                             //1.2 遍历复选框
-                            for (var i = 0; i < checkBox.length; i++) {
-                                if (checkBox[i].checked) {
+                            $("input[name = 'blogId']").each(function () {
+                                if($(this).is(":checked"))  {
                                     //1.3根据分页查询的数据获取每条数据的编号id
-                                    id_delete = $.trim($("#blogId").text()); //解释放在ArticleType.html同样删除方法里
+                                    id_delete =$(this).val(); //解释放在ArticleType.html同样删除方法里
                                     //1.4得到所选择的id数组
                                    /* alert(id_delete);*/
                                     ids.push(id_delete);
                                 }
-                            }
+                            })
                             //1.4 判断是否有选中数据删除
                             if (ids.length <= 0 ){
                                 alert("请选择要删除的数据！");
@@ -290,14 +289,14 @@
                             var count = 0; //记录被选择的复选框数量
                             var id_update = 0; //复选框对应的数据编号顺序（后面用作回显查询数据Id）
                             //1.1.1遍历复选框，记录被选择复选框个数与id
-                            for (var i = 0; i < checkBox.length; i++) {
+                            $("input[name = 'blogId']").each(function () {
                                 //如果被选择
-                                if (checkBox[i].checked) {
+                                if($(this).is(":checked"))  {
                                     //记录+1
-                                    id_update = $.trim($("#blogId").text());
+                                    id_update = $(this).val();
                                     count = count + 1;
                                 }
-                            }
+                            })
                             //1.2如果被选择复选框数量大于1个，点击修改按钮时，提示
                             if (count > 1) {
                                 alert("只能选择单条数据进行更改！");

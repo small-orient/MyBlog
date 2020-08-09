@@ -20,6 +20,8 @@ public class BlogArticleServiceImpl implements BlogArticleService {
     @Resource
     private BlogArticleDao blogArticleDao;
 
+
+
     //查询所有博客文章类型列表：无参查询
     @Override
     public List<BlogArticle> countList() {
@@ -89,22 +91,9 @@ public class BlogArticleServiceImpl implements BlogArticleService {
 
     //根据Id删除单条博客文章
     @Override
-    public Integer delete(Integer[] ids) {
-        Integer count = 0;
-        Integer resultInt = 0; //返回数据
-        for (Integer id :ids){
-            count = blogArticleDao.delete(id);
-           //每删除一个就判断一次是否删除成功
-            if (count > 0){
-                //定义返回数据
-                resultInt = 1;
-            }else {
-                resultInt = 0;
-            }
-        }
+    public Integer delete(Integer id) {
 
-
-        return resultInt;
+        return blogArticleDao.delete(id);
 
     }
 

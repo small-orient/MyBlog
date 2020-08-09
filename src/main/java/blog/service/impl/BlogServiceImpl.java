@@ -31,6 +31,10 @@ public class BlogServiceImpl implements BlogService {
         return blogDao.findById(id);
     }
 
+    //根据博客外键文章类型Id查询单条博客信息 *
+    public Integer findByArticleTypeId(Integer articleTypeId){
+        return blogDao.findByArticleTypeId(articleTypeId);
+    }
 
     @Override
     public Long getTotal(Map<String, Object> map) {
