@@ -1,4 +1,4 @@
-package blog.controller;
+package blog.controller.admin;
 
 import blog.entity.Blogger;
 import blog.entity.ResultInfo;

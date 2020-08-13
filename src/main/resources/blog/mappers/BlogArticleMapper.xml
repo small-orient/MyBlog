@@ -69,7 +69,7 @@
                typeName=#{typeName},
            </if>
 
-           <if test="orderNo != null and orderNo != ''">
+           <if test="orderNo != null ">
                orderNo=#{orderNo},
            </if>
        </set>

@@ -107,7 +107,7 @@ public class BlogAdminController {
             @RequestParam(value = "pageSize",required = false) String pageSizeStr,
             @RequestParam(value = "title",required = false) String title
     ){
-        //因为和查询文章做的显示数据方法一样，故copy部分代码,而且之前做的PageBean因为是泛型所以还可以继续引用
+        //因为和查询文章类型做的显示数据方法一样，故copy部分代码,而且之前做的PageBean因为是泛型所以还可以继续引用
         //先判断所得参数是不是空，然后将其转为int数据
         int currentPage = 0;
         if (currentPageStr != null && currentPageStr.length() > 0){

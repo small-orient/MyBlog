@@ -73,7 +73,7 @@
         <div class="navbar-inner">
             <div class="container">
                 <a class="btn btn-navbar" data-toggle="collapse" data-target=".navbar-inverse-collapse">
-                    <i class="icon-reorder shaded"></i></a><a class="brand" href="back.html">Edmin </a>
+                    <i class="icon-reorder shaded"></i></a><a class="brand" href="back.html">博客更新 </a>
                 <div class="nav-collapse collapse navbar-inverse-collapse">
                     <ul class="nav nav-icons">
                         <li class="active"><a href="#"><i class="icon-envelope"></i></a></li>
@@ -123,11 +123,6 @@
                 <div class="span3">
                     <div class="sidebar">
                         <ul class="widget widget-menu unstyled">
-                            <li class="active"><a href="back.html"><i class="menu-icon icon-dashboard"></i>Dashboard
-                            </a></li>
-                            <li><a href="activity.html"><i class="menu-icon icon-bullhorn"></i>News Feed </a>
-                            </li>
-
                             <!--博客管理列表-->
                             <li>
                                 <a class="collapsed" data-toggle="collapse" href="#bkgl"><i class="menu-icon icon-cog"></i>
@@ -136,15 +131,33 @@
                                     博客管理
                                 </a>
                                 <ul id="bkgl" class="collapse unstyled">
-                                    <li><a id="wzlx" href="ArticleType.html"><i class="icon-inbox"></i>文章类型 </a></li>
                                     <li><a id="blogManage" href="blogManage.html"><i class="icon-inbox"></i>博客数据</a></li>
-                                    <li><a id="plgl" href="#"><i class="icon-inbox"></i>评论管理 </a></li>
                                     <li><a href="writeBlog.html"><i class="menu-icon icon-book"></i>写博客 </a></li>
                                 </ul>
                             </li>
-
-                            <li><a href="task.html"><i class="menu-icon icon-tasks"></i>Tasks <b class="label orange pull-right">
-                                19</b> </a></li>
+                            <!--文章类型管理列表-->
+                            <li>
+                                <a class="collapsed" data-toggle="collapse" href="#wzlx"><i class="menu-icon icon-cog"></i>
+                                    <i class="icon-chevron-down pull-right"></i>
+                                    <i class="icon-chevron-up pull-right"></i>
+                                    文章类型管理
+                                </a>
+                                <ul id="wzlx" class="collapse unstyled">
+                                    <li><a id="articleTypeData" href="ArticleTypeManage.html"><i class="icon-inbox"></i>文章类型数据</a></li>
+                                </ul>
+                            </li>
+                            <!--评论管理列表-->
+                            <li>
+                                <a class="collapsed" data-toggle="collapse" href="#plgl"><i class="menu-icon icon-cog"></i>
+                                    <i class="icon-chevron-down pull-right"></i>
+                                    <i class="icon-chevron-up pull-right"></i>
+                                    评论管理
+                                </a>
+                                <ul id="plgl" class="collapse unstyled">
+                                    <li><a id="comment" href="CommentManage.html"><i class="icon-inbox"></i>评论数据</a></li>
+                                    <li><a href="CommentReview.html"><i class="menu-icon icon-book"></i>评论审核</a></li>
+                                </ul>
+                            </li>
                         </ul>
                         <!--/.widget-nav-->
                         <ul class="widget widget-menu unstyled">

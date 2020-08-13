@@ -1,0 +1,569 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>评论管理</title>
+        <link type="text/css" href="../static/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+        <link type="text/css" href="../static/bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet">
+        <link type="text/css" href="../static/css/theme.css" rel="stylesheet">
+        <link type="text/css" href="../static/images/icons/css/font-awesome.css" rel="stylesheet">
+        <link type="text/css" href='http://fonts.googleapis.com/css?family=Open+Sans:400italic,600italic,400,600'
+            rel='stylesheet'>
+
+    <!--博客管理页面-->
+
+
+    <!--引入JQ-->
+    <script src="../static/scripts/jquery-1.9.1.min.js"></script>
+    <!--引入自定义获取参数Js-->
+    <script src="../static/js/getParameter.js"></script>
+        <script>
+
+            $(function () {
+
+
+
+
+
+
+                //调用分页方法
+                loadCommentData();
+
+/*
+
+                //调用查询方法
+                search();
+*/
+/*
+                //给搜索框添加个回车事件，让回车也具有点击按钮同样功能
+                $("#CommentTitle").keyup(function (event) {
+                    if (event.keyCode == 13){
+                        $("#titleQuery").click();
+
+                        //ps：有个莫名BUG未解决，第一次点击回车事件时，可正常搜索，第二次回车时，
+                        // 页面location.href的路径变为了：http://localhost/Comment_war_exploded/admin/CommentManage.html?#，查询不出指定结果，
+                        // 而再查一次又恢复正常
+                    }
+                })*/
+
+            })
+
+
+
+
+          /*  //搜索框添加查询方法
+            function search(){
+                //给搜索按钮添加一个点击事件
+                $("#titleQuery").click(function () {
+                    //获取搜索框的值
+                    title = $("#CommentTitle").val();
+                    //做一个页面跳转（因为跳的是原来的页面相当于刷新），传递title值，用于AJAX请求
+                    location.href = "http://localhost:80/Comment_war_exploded/admin/CommentManage.html?title="+title;
+                })
+            }*/
+
+
+
+            //封装分页方法
+            function loadCommentData(currentPage) {
+                    $.get("../admin/comment/list",{currentPage:currentPage},function (map) {
+
+                        /*分页页码*/
+                        var lis = "";
+                        //定义首页：因为后台当前页默认为1，故首页不用传页码数据
+                        var firstPage = '<li><a href="javascript:loadCommentData(1)">首页</a></li>';
+                        lis += firstPage;
+                        //定义上一页
+                        if (map.pb.currentPage > 1){
+                            upPageNo = map.pb.currentPage-1;
+                        }else {
+                            upPageNo = 1;
+                        }
+                        var upPage = '<li><a href="javascript:loadCommentData('+ upPageNo+')"></i>上一页</a></li>';
+                        lis += upPage;
+
+                        //设置分页页码数量
+                        var begin;
+                        var end;
+                        //定义显示6个页码
+                        if (map.total < 6 ){
+                            //不够6页
+                            begin = 1;
+                            end = map.total;
+                        }else {
+                            //大于6页
+                            begin = map.pb.currentPage - 3;
+                            end = map.pb.currentPage + 2;
+
+                            //当前页码不足3个,后面就补齐6个
+                            if(begin < 1){
+                                begin = 1;
+                                end = begin + 5;
+                            }
+
+                            //最后页码不足2个，前面补齐6个
+                            if (end > map.total){
+                                end = map.total;
+                                begin = end - 5;
+                            }
+                        }
+
+                        for (var i = begin; i <= end; i++){
+                            var li = '<li ><a href="javascript:loadCommentData('+i+')">'+i+'</a></li>';
+                            lis += li;
+                        }
+
+
+                        //定义下一页
+                        if (map.pb.currentPage < map.total){
+                            nextPageNo =  map.pb.currentPage + 1 ;
+                        }else {
+                            nextPageNo = map.total
+                        }
+                        var nextPage = '<li><a href="javascript:loadCommentData('+nextPageNo+')">下一页</a></li>';
+                        lis += nextPage;
+                        //定义末页
+                        var endPage = '<li><a href="javascript:loadCommentData('+map.total+')">末页</a></li>';
+                        lis += endPage;
+                        //将lis放入ul中
+                        $("#pageNum").html(lis);
+
+
+                        /*数据展示*/
+                        var trs = "";
+                        //开头的tr
+                        var titleTr = '<tr class="heading">\n' +
+                            '                                                <td class="cell-check">\n' +
+                            '                                                    <input type="checkbox"  id="CommentTitle" name="CommentTitle" class="inbox-checkbox">\n' +
+                            '                                                </td>\n' +
+                            '                                                <td class="cell-icon">\n' +
+                            '                                                </td>\n' +
+                            '                                                <td class="cell-title  ">\n' +
+                            '                                                    编号\n' +
+                            '                                                </td>\n' +
+                            '                                                <td class="cell-title " >\n' +
+                            '                                                    博客标题\n' +
+                            '                                                </td>\n' +
+                            '                                                <td class="cell-title">\n' +
+                            '                                                    用户Ip\n' +
+                            '                                                </td>\n' +
+                            '                                                <td class="cell-title ">\n' +
+                            '                                                    评论内容\n' +
+                            '                                                </td>\n' +
+                            '                                                <td class="cell-title ">\n' +
+                            '                                                    评论日期\n' +
+                            '                                                </td>\n' +
+                            '                                                <td class="cell-title ">\n' +
+                            '                                                    评论状态\n' +
+                            '                                                </td>\n' +
+                            '                                            </tr>';
+
+                        trs += titleTr;
+
+                        for (var i = 0; i < map.commentList.length; i++){
+                            var CommentData =  map.commentList[i];
+                            //将字符串转成日期
+                            var date = CommentData.commentDate;
+                            var newDate = new Date();
+                            newDate.setTime(date);
+
+                            //做一个评论状态判断
+                            if (CommentData.state == 0){
+                                CommentData.state = "未审核";
+                            }else if (CommentData.state == 1){
+                                CommentData.state = "审核已通过";
+                            }else if (CommentData.state == 2){
+                                CommentData.state = "审核未通过";
+                            }
+
+
+
+
+                            var tr = '  <tr class="unread">\n' +
+                                '                <td class="cell-check">\n' +
+                                '                <input type="checkbox"  id="CommentData" name="CommentId" class="inbox-checkbox" value='+CommentData.id+'>\n' +
+                                '                </td>               \n' +
+                                '                <td class="cell-icon">\n' +
+                                '                <i class="icon-star"></i>\n' +
+                                '                </td>          \n' +
+                                '            <td class="cell-title" id="CommentId">\n' +
+                                '                '+CommentData.id+'\n' +
+                                '            </td>           \n' +
+                                '            <td class="cell-title ">\n' +
+                                '                '+CommentData.blog.title+'\n' +
+                                '            </td>\n' +
+                                '            <td class="cell-title ">\n' +
+                                '               '+CommentData.userIp+'\n' +
+                                    '        </td>\n' +
+                                '            <td class="cell-title ">\n' +
+                                '               '+CommentData.content+'\n' +
+                                '        </td>\n' +
+                                '            <td class="cell-title ">\n' +
+                                '               '+newDate.toLocaleDateString()+'\n' +
+                                '        </td>\n' +
+                                '            <td class="cell-title ">\n' +
+                                '               '+CommentData.state+'\n' +
+                                '        </td>\n' +
+                                '       </tr>';
+
+                            trs += tr;
+                        }
+                        $("#CommentData").html(trs);
+
+
+                        /*-----------内部分割线：删除方法------------*/
+                        //与文章类型功能类似，复制部分代码
+                        //1 给删除按钮添加点击事件，发送ajax请求，将ids传递至后台
+                        $("#deleteComment").click(function () {
+                            //1.1 遍历复选框，获得选择的复选框编号
+
+                            var ids = [] ; //复选框对应的数据编号顺序数组
+                            //1.2 遍历复选框
+                            $("input[name = 'CommentId']").each(function () {
+                                if($(this).is(":checked"))  {
+                                    //1.3根据分页查询的数据获取每条数据的编号id
+                                    id_delete =$(this).val(); //解释放在ArticleType.html同样删除方法里
+                                    //1.4得到所选择的id数组
+                                   /* alert(id_delete);*/
+                                    ids.push(id_delete);
+                                }
+                            })
+                            //1.4 判断是否有选中数据删除
+                            if (ids.length <= 0 ){
+                                alert("请选择要删除的数据！");
+                            }else {
+                                //1.5 提示是否删除
+                                $("#deleteTipComment").modal('show');
+                                $("#tip_deleteComment").html("确定要删除这"+ids.length+"条数据吗？");
+                                //1.6 给确认按钮添加点击事件
+                                $("#confirm_deleteComment").click(function () {
+                                    //2 发送ajax请求，判断删除效果
+                                    $.post("../admin/comment/commentDelete",{ids:ids},function (info) {
+                                        //2.1获取后台传递的提示信息，前台提示用户
+                                        if (info.flag){
+                                            alert("删除成功！");
+                                            location.reload();
+                                        }else {
+                                            alert("删除失败，请重试！");
+                                        }
+                                    },"json")
+                                })
+                            }
+                        })
+
+
+
+                    },"json")
+
+
+            }
+
+
+
+
+        </script>
+
+
+    </head>
+    <body>
+        <div class="navbar navbar-fixed-top">
+            <div class="navbar-inner">
+                <div class="container">
+                    <a class="btn btn-navbar" data-toggle="collapse" data-target=".navbar-inverse-collapse">
+                        <i class="icon-reorder shaded"></i></a><a class="brand" href="back.html">评论管理 </a>
+                    <div class="nav-collapse collapse navbar-inverse-collapse">
+                        <ul class="nav nav-icons">
+                            <li class="active"><a href="#"><i class="icon-envelope"></i></a></li>
+                            <li><a href="#"><i class="icon-eye-open"></i></a></li>
+                            <li><a href="#"><i class="icon-bar-chart"></i></a></li>
+                        </ul>
+
+                        <ul class="nav pull-right">
+                            <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">Dropdown
+                                <b class="caret"></b></a>
+                                <ul class="dropdown-menu">
+                                    <li><a href="#">Item No. 1</a></li>
+                                    <li><a href="#">Don't Click</a></li>
+                                    <li class="divider"></li>
+                                    <li class="nav-header">Example Header</li>
+                                    <li><a href="#">A Separated link</a></li>
+                                </ul>
+                            </li>
+                            <li><a href="#">Support </a></li>
+                            <li class="nav-user dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                                <img src="../static/images/user.png" class="nav-avatar" />
+                                <b class="caret"></b></a>
+                                <ul class="dropdown-menu">
+                                    <li><a href="#">Your Profile</a></li>
+                                    <li><a href="#">Edit Profile</a></li>
+                                    <li><a href="#">Account Settings</a></li>
+                                    <li class="divider"></li>
+                                    <li><a href="#">Logout</a></li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                    <!-- /.nav-collapse -->
+                </div>
+            </div>
+            <!-- /navbar-inner -->
+        </div>
+        <!-- /navbar -->
+        <div class="wrapper">
+            <div class="container">
+                <div class="row">
+                    <div class="span3">
+                        <div class="sidebar">
+                            <ul class="widget widget-menu unstyled">
+                                <!--博客管理列表-->
+                                <li>
+                                    <a class="collapsed" data-toggle="collapse" href="#bkgl"><i class="menu-icon icon-cog"></i>
+                                        <i class="icon-chevron-down pull-right"></i>
+                                        <i class="icon-chevron-up pull-right"></i>
+                                        博客管理
+                                    </a>
+                                    <ul id="bkgl" class="collapse unstyled">
+                                        <li><a id="blogManage" href="blogManage.html"><i class="icon-inbox"></i>博客数据</a></li>
+                                        <li><a href="writeBlog.html"><i class="menu-icon icon-book"></i>写博客 </a></li>
+                                    </ul>
+                                </li>
+                                <!--文章类型管理列表-->
+                                <li>
+                                    <a class="collapsed" data-toggle="collapse" href="#wzlx"><i class="menu-icon icon-cog"></i>
+                                        <i class="icon-chevron-down pull-right"></i>
+                                        <i class="icon-chevron-up pull-right"></i>
+                                        文章类型管理
+                                    </a>
+                                    <ul id="wzlx" class="collapse unstyled">
+                                        <li><a id="articleTypeData" href="ArticleTypeManage.html"><i class="icon-inbox"></i>文章类型数据</a></li>
+                                    </ul>
+                                </li>
+                                <!--评论管理列表-->
+                                <li>
+                                    <a class="collapsed" data-toggle="collapse" href="#plgl"><i class="menu-icon icon-cog"></i>
+                                        <i class="icon-chevron-down pull-right"></i>
+                                        <i class="icon-chevron-up pull-right"></i>
+                                        评论管理
+                                    </a>
+                                    <ul id="plgl" class="collapse unstyled">
+                                        <li><a id="comment" href="CommentManage.html"><i class="icon-inbox"></i>评论数据</a></li>
+                                        <li><a href="CommentReview.html"><i class="menu-icon icon-book"></i>评论审核</a></li>
+                                    </ul>
+                                </li>
+                            </ul>
+                            <!--/.widget-nav-->
+                            <ul class="widget widget-menu unstyled">
+                                <li><a href="/admin/ui-button-icon.html"><i class="menu-icon icon-bold"></i> Buttons </a></li>
+                                <li><a href="/admin/writeComment.html"><i class="menu-icon icon-book"></i>writeComment </a></li>
+                                <li><a href="/admin/form.html"><i class="menu-icon icon-paste"></i>Forms </a></li>
+                                <li><a href="/admin/table.html"><i class="menu-icon icon-table"></i>Tables </a></li>
+                                <li><a href="/admin/charts.html"><i class="menu-icon icon-bar-chart"></i>Charts </a></li>
+                            </ul>
+                            <!--/.widget-nav-->
+                            <ul class="widget widget-menu unstyled">
+                                <li><a class="collapsed" data-toggle="collapse" href="#togglePages"><i class="menu-icon icon-cog">
+                                </i><i class="icon-chevron-down pull-right"></i><i class="icon-chevron-up pull-right">
+                                </i>More Pages </a>
+                                    <ul id="togglePages" class="collapse unstyled">
+                                        <li><a href="/admin/other-login.html"><i class="icon-inbox"></i>Login </a></li>
+                                        <li><a href="/admin/other-user-profile.html"><i class="icon-inbox"></i>Profile </a></li>
+                                        <li><a href="/admin/other-user-listing.html"><i class="icon-inbox"></i>All Users </a></li>
+                                    </ul>
+                                </li>
+                                <li><a href="#"><i class="menu-icon icon-signout"></i>Logout </a></li>
+                            </ul>
+                        </div>
+                        <!--/.sidebar-->
+                    </div>
+                    <!--/.span3-->
+                    <div class="span9">
+                        <div class="content">
+                            <div class="module message">
+                                <div class="module-head">
+                                    <h3>
+                                        评论数据信息</h3>
+                                </div>
+
+                                <div class="module-option clearfix">
+                                    <!--查询搜索框-->
+                                    <form class="navbar-search pull-left input-append" action="#">
+                                        <input type="text" class="span3" id="CommentTitle" >
+                                        <button class="btn" type="button" id="titleQuery">
+                                            <i class="icon-search" ></i>
+                                        </button>
+                                    </form>
+
+                                    <!--删除信息按钮-->
+                                    <div class="pull-right" >
+                                        <button class="btn btn-danger "  id="deleteComment">删除</button>
+                                    </div>
+
+                                </div>
+
+
+                                <div class="module-body table">
+                                    <table class="table table-message">
+                                        <tbody id="CommentData">
+                                            <tr class="heading">
+                                                <td class="cell-check">
+                                                    <input type="checkbox" class="inbox-checkbox">
+                                                </td>
+                                                <td class="cell-icon">
+                                                </td>
+                                                <td class="cell-author hidden-phone hidden-tablet">
+                                                    文章顺序
+                                                </td>
+                                                <td class="cell-title">
+                                                    类型名称
+                                                </td>
+                                                <td class="cell-icon hidden-phone hidden-tablet">
+                                                </td>
+                                                <td class="cell-time align-right">
+                                                    序号
+                                                </td>
+                                            </tr>
+
+
+                                            <!--一行数据-->
+                                            <tr class="unread">
+                                                <!--复选框-->
+                                                <td class="cell-check">
+                                                    <input type="checkbox" name="CommentData" class="inbox-checkbox">
+                                                </td>
+                                                <!--星星图标-->
+                                                <td class="cell-icon">
+                                                    <i class="icon-star"></i>
+                                                </td>
+                                                <!--类型数据-->
+                                                <td class="cell-author hidden-phone hidden-tablet">
+                                                    John Donga
+                                                </td>
+                                                <!--博客名称数据-->
+                                                <td class="cell-title">
+                                                    Sample Work
+                                                </td>
+
+                                                <td class="cell-icon hidden-phone hidden-tablet">
+                                                   <!-- <i class="icon-paper-clip"></i>-->
+                                                </td>
+
+                                                <!--序号数据-->
+                                                <td class="cell-time align-right">
+                                                    18:24
+                                                </td>
+                                            </tr>
+
+
+                                            <!-- 修改模态框（Modal） -->
+                                            <div class="modal fade" id="updateModalComment" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                                                <div class="modal-dialog">
+                                                    <div class="modal-content" >
+                                                        <div class="modal-header">
+                                                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                                                            <h4 class="modal-title" id="myUpdateComment">更改评论</h4>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            文章类别名称：
+                                                            <label for="typeName_updateComment"> <input type="text" id="typeName_updateComment" name="typeName" required="true" ></label><br>
+
+                                                            文章类别序号：
+                                                            <label for="orderNo_updateComment"> <input type="text" id="orderNo_updateComment" name="orderNo" required="true" ></label><br>
+                                                            <span ><font color="#1e90ff" id="updateMsgComment" ></font></span>
+
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                                                            <button type="button" class="btn btn-primary" id="update_submitComment">保存修改</button>
+                                                        </div>
+                                                    </div><!-- /.modal-content -->
+                                                </div><!-- /.modal -->
+                                            </div>
+
+
+
+
+                                            <!--修改确认提示框-->
+                                            <div class="modal fade" id="updateTipComment" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+                                                <div class="modal-dialog " role="document">
+                                                    <div class="modal-content" >
+                                                        <div class="modal-header">
+                                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+                                                            <h4 class="modal-title" id="updateModalLabelComment">提示</h4>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <form>
+                                                                <div class="form-group">
+                                                                    <label  class="control-label" id="tip_updateComment">确定修改该条评论吗？</label>
+                                                                </div>
+                                                            </form>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-default" data-dismiss="modal">返回</button>
+                                                            <button type="button" class="btn btn-primary" id="confirm_updateComment">确认</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!--删除确认提示框-->
+                                            <div class="modal fade" id="deleteTipComment" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+                                                <div class="modal-dialog " role="document">
+                                                    <div class="modal-content" >
+                                                        <div class="modal-header">
+                                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+                                                            <h4 class="modal-title" id="deleteModalLabelComment">提示</h4>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <form>
+                                                                <div class="form-group">
+                                                                    <label  class="control-label" id="tip_deleteComment">确定删除该条评论吗？</label>
+                                                                </div>
+                                                            </form>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-default" data-dismiss="modal">返回</button>
+                                                            <button type="button" class="btn btn-primary" id="confirm_deleteComment">确认</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                        </tbody>
+                                    </table>
+
+                                    <!--分页图标-->
+                                    <div class="pagination pagination-centered">
+                                        <ul id="pageNum">
+                                            <li class="current-new-color-grid"><a href="#">首页</a></li>
+                                            <li><a href="#"></i>下一页</a></li>
+                                            <li><a href="#">1</a></li>
+                                            <li><a href="#">2</a></li>
+                                            <li><a href="#">3</a></li>
+                                            <li><a href="#">4</a></li>
+                                            <li><a href="#">下一页</a></li>
+                                            <li><a href="#">末页</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="module-foot">
+                                </div>
+                            </div>
+                        </div>
+                        <!--/.content-->
+                    </div>
+                    <!--/.span9-->
+                </div>
+            </div>
+            <!--/.container-->
+        </div>
+        <!--/.wrapper-->
+        <div class="footer">
+            <div class="container">
+                <b class="copyright">&copy; 2014 Edmin - EGrappler </b>All rights reserved. - Collect from <a href="http://www.sucaihuo.com/" title="网页模板" target="_blank">网页模板</a>
+            </div>
+        </div>
+        <script src="../static/scripts/jquery-1.9.1.min.js" type="text/javascript"></script>
+        <script src="../static/scripts/jquery-ui-1.10.1.custom.min.js" type="text/javascript"></script>
+        <script src="../static/bootstrap/js/bootstrap.min.js" type="text/javascript"></script>
+    </body>

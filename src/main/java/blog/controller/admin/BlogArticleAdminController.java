@@ -122,7 +122,7 @@ public class BlogArticleAdminController {
         }
 
 
-        //修改文章类型
+        //回显方法
         @RequestMapping("/relook")
         public @ResponseBody String relook(
                 @RequestParam(value ="id_update") int id
@@ -194,10 +194,9 @@ public class BlogArticleAdminController {
            */
                 //判断根据这个文章类型id是否能查询出博客文章，若能查出来，则提示不能删除
                 blogNum = blogService.findByArticleTypeId(id);
-            System.out.println(id);
-            System.out.println(blogNum);
+
                 if (blogNum > 0 ) {
-                    //"1"表示：
+                    //"1"表示：该类型被文章引用，不能删除！
                     info.setErrorInfo("1");
                     info.setFlag(false);
                 } else {

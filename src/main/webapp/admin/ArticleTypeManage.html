@@ -11,67 +11,77 @@
         <link type="text/css" href='http://fonts.googleapis.com/css?family=Open+Sans:400italic,600italic,400,600'
             rel='stylesheet'>
 
-    <!--博客管理页面-->
-
-
     <!--引入JQ-->
     <script src="../static/scripts/jquery-1.9.1.min.js"></script>
-    <!--引入自定义获取参数Js-->
-    <script src="../static/js/getParameter.js"></script>
         <script>
 
             $(function () {
 
+                //调用分页方法：其中包含了添加、修改、删除数据方法（因为没使用框架，复选框id与数据库数据的编号需对应才能进行CRUD操作，所以写在了里面）
+                load();
 
 
+                /*--------------------------------分割线--------------------------------*/
 
-                //获取跳转后页面传递过来的title
-                var title = getParameter("title");
-                //若title是中文的话还有可能产生乱码，故做一个解码操作
-                //如果title有值,不为空
-                if (title){
-                    title = window.decodeURIComponent(title);
-                }
-
-                //调用分页方法
-                loadBlogData(null,title);
-
-
-                //调用查询方法
-                search();
-
-                //给搜索框添加个回车事件，让回车也具有点击按钮同样功能
-                $("#blogTitle").keyup(function (event) {
-                    if (event.keyCode == 13){
-                        $("#titleQuery").click();
-
-                        //ps：有个莫名BUG未解决，第一次点击回车事件时，可正常搜索，第二次回车时，
-                        // 页面location.href的路径变为了：http://localhost/blog_war_exploded/admin/blogManage.html?#，查询不出指定结果，
-                        // 而再查一次又恢复正常
+                //添加文章类型方法：
+                //1.给确认添加按钮增加一个点击事件，保存输入值
+                $("#add_submit").click(function () {
+                    var typeName;
+                    var orderNo;
+                    typeName_test = $("#typeName").val();
+                    orderNo_test = $("#orderNo").val();
+                    //1.1判断输入值是否为空
+                    if (typeName_test == '' && typeName_test.length <= 0 || orderNo_test == '' && orderNo_test.length <= 0) {
+                        alert("请输入数据")
+                    } else {
+                        //1.2 不为空则赋值，得到ajax参数
+                        typeName = $("#typeName").val();
+                        orderNo = $("#orderNo").val();
                     }
+                    //2.发送ajax请求，将参数保存
+                    $.get("../admin/blogArticle/save", {typeName: typeName, orderNo: orderNo}, function (info) {
+                        if (info.flag) {
+                            //2.1保存成功，提示
+                            $("#addMsg").html("保存成功！");
+                            //2.2重置输入框
+                            $("#typeName").val('');
+                            $("#orderNo").val('');
+                            //2.3给关闭按钮添加点击事件，刷新当前页面
+                            $("#addClose").click(function () {
+                                location.reload();
+                            })
+                        } else {
+                            //2.4保存失败，提示
+                            $("#addMsg").html(info.errorInfo);
+                        }
+                    }, "json")
                 })
 
             })
 
+            /*--------------------------------分割线--------------------------------*/
 
+            //修改类型外部调用方法
+            function update(id_update,typeName_update,orderNo_update) {
+                $.get("../admin/blogArticle/update",{id_update:id_update,typeName_update:typeName_update,orderNo_update:orderNo_update},function (count) {
+                        if (count != null && count.length >0){
+                            //确认数据修改后移除模态框
+                            alert("修改成功！");
 
+                            //修改成功后刷新页面
+                            location.reload();
 
-            //搜索框添加查询方法
-            function search(){
-                //给搜索按钮添加一个点击事件
-                $("#titleQuery").click(function () {
-                    //获取搜索框的值
-                    title = $("#blogTitle").val();
-                    //做一个页面跳转（因为跳的是原来的页面相当于刷新），传递title值，用于AJAX请求
-                    location.href = "http://localhost:80/blog_war_exploded/admin/blogManage.html?title="+title;
+                        }else {
+                            alert("修改失败！");
+                        }
                 })
             }
 
-
+            /*--------------------------------分割线--------------------------------*/
 
             //封装分页方法
-            function loadBlogData(currentPage,title) {
-                    $.get("../admin/blog/list",{currentPage:currentPage,title:title},function (map) {
+            function load(currentPage) {
+                    $.get("../admin/blogArticle/list",{currentPage:currentPage},function (pb) {
                         /*分页：
                             <div class="pagination pagination-centered">
                                 <ul id="pageNum">
@@ -86,35 +96,32 @@
                                 </ul>
                             </div>
                             */
-
-
-
-                        /*分页页码*/
+                        //分页页码
                         var lis = "";
                         //定义首页：因为后台当前页默认为1，故首页不用传页码数据
-                        var firstPage = '<li><a href="javascript:loadBlogData(1,\''+title+'\')">首页</a></li>';
+                        var firstPage = '<li><a href="javascript:load()">首页</a></li>';
                         lis += firstPage;
                         //定义上一页
-                        if (map.pb.currentPage > 1){
-                            upPageNo = map.pb.currentPage-1;
+                        if (pb.currentPage > 1){
+                            upPageNo =  pb.currentPage-1;
                         }else {
                             upPageNo = 1;
                         }
-                        var upPage = '<li><a href="javascript:loadBlogData('+ upPageNo+',\''+title+'\')"></i>上一页</a></li>';
+                        var upPage = '<li><a href="javascript:load('+ upPageNo+')"></i>上一页</a></li>';
                         lis += upPage;
 
                         //设置分页页码数量
                         var begin;
                         var end;
                         //定义显示6个页码
-                        if (map.total < 6 ){
+                        if (pb.totalPage < 6 ){
                             //不够6页
                             begin = 1;
-                            end = map.total;
+                            end = pb.totalPage;
                         }else {
                             //大于6页
-                            begin = map.pb.currentPage - 3;
-                            end = map.pb.currentPage + 2;
+                            begin = pb.currentPage - 3;
+                            end = pb.currentPage + 2;
 
                             //当前页码不足3个,后面就补齐6个
                             if(begin < 1){
@@ -123,177 +130,163 @@
                             }
 
                             //最后页码不足2个，前面补齐6个
-                            if (end > map.total){
-                                end = map.total;
+                            if (end > pb.totalPage){
+                                end = pb.totalPage;
                                 begin = end - 5;
                             }
                         }
 
                         for (var i = begin; i <= end; i++){
-                            var li = '<li ><a href="javascript:loadBlogData('+i+',\''+title+'\')">'+i+'</a></li>';
+                            var li = '<li ><a href="javascript:load('+i+')">'+i+'</a></li>';
                             lis += li;
                         }
 
 
                         //定义下一页
-                        if (map.pb.currentPage < map.total){
-                            nextPageNo =  map.pb.currentPage + 1 ;
+                        if (pb.currentPage < pb.totalPage){
+                            nextPageNo =  pb.currentPage + 1 ;
                         }else {
-                            nextPageNo = map.total
+                            nextPageNo = pb.totalPage
                         }
-                        var nextPage = '<li><a href="javascript:loadBlogData('+nextPageNo+',\''+title+'\')">下一页</a></li>';
+                        var nextPage = '<li><a href="javascript:load('+nextPageNo+')">下一页</a></li>';
                         lis += nextPage;
                         //定义末页
-                        var endPage = '<li><a href="javascript:loadBlogData('+map.total+',\''+title+'\')">末页</a></li>';
+                        var endPage = '<li><a href="javascript:load('+pb.totalPage+')">末页</a></li>';
                         lis += endPage;
                         //将lis放入ul中
                         $("#pageNum").html(lis);
 
 
-                        /*数据展示*/
+                        //数据展示
                         var trs = "";
                         //开头的tr
                         var titleTr = '<tr class="heading">\n' +
                             '                                                <td class="cell-check">\n' +
-                            '                                                    <input type="checkbox"  id="blogTitle" name="blogTitle" class="inbox-checkbox">\n' +
+                            '                                                    <input type="checkbox"  id="ArticleTypeTitle" name="ArticleTypeTitle" class="inbox-checkbox">\n' +
                             '                                                </td>\n' +
                             '                                                <td class="cell-icon">\n' +
                             '                                                </td>\n' +
-                            '                                                <td class="cell-title  ">\n' +
+                            '                                                <td class="cell-author hidden-phone hidden-tablet">\n' +
                             '                                                    编号\n' +
                             '                                                </td>\n' +
-                            '                                                <td class="cell-title " >\n' +
-                            '                                                    标题\n' +
-                            '                                                </td>\n' +
                             '                                                <td class="cell-title">\n' +
-                            '                                                    摘要\n' +
+                            '                                                    类型名称\n' +
                             '                                                </td>\n' +
-                            '                                                <td class="cell-title ">\n' +
-                            '                                                    发表时间\n' +
+                            '                                                <td class="cell-icon hidden-phone hidden-tablet">\n' +
                             '                                                </td>\n' +
-                            '                                                <td class="cell-title ">\n' +
-                            '                                                    点击数\n' +
-                            '                                                </td>\n' +
-                            '                                                <td class="cell-title ">\n' +
-                            '                                                    评论数\n' +
-                            '                                                </td>\n' +
-                            '                                                <td class="cell-title ">\n' +
-                            '                                                    内容\n' +
-                            '                                                </td>\n' +
-                            '                                                <td class="cell-title align-center">\n' +
-                            '                                                    所属博客类型\n' +
-                            '                                                </td>\n' +
-                            '                                                <td class="cell-title ">\n' +
-                            '                                                    关键字\n' +
+                            '                                                <td class="cell-time align-right">\n' +
+                            '                                                    序号\n' +
                             '                                                </td>\n' +
                             '                                            </tr>';
 
                         trs += titleTr;
 
-                        for (var i = 0; i < map.list.length; i++){
-                            var blogData =  map.list[i];
-                            //将字符串转成日期
-                            var date = blogData.releaseDate;
-                            var newDate = new Date();
-                            newDate.setTime(date);
-
-
-
+                        for (var i = 0; i < pb.resultList.length; i++){
+                            var articleData = pb.resultList[i];
 
                             var tr = '  <tr class="unread">\n' +
                                 '                <td class="cell-check">\n' +
-                                '                <input type="checkbox"  id="blogData" name="blogId" class="inbox-checkbox" value='+blogData.id+'>\n' +
+                                '                <input type="checkbox"   class="inbox-checkbox" name="blogTypeId" value='+articleData.id+'>\n' +
                                 '                </td>               \n' +
                                 '                <td class="cell-icon">\n' +
                                 '                <i class="icon-star"></i>\n' +
                                 '                </td>          \n' +
-                                '            <td class="cell-title" id="blogId">\n' +
-                                '                '+blogData.id+'\n' +
+                                '                <td class="cell-author hidden-phone hidden-tablet"  name='+articleData.id+' >\n' +
+                                '                '+articleData.id+'\n' +
                                 '            </td>           \n' +
-                                '            <td class="cell-title ">\n' +
-                                '                '+blogData.title+'\n' +
+                                '            <td class="cell-title">\n' +
+                                '                '+articleData.typeName+'\n' +
                                 '            </td>\n' +
-                                '            <td class="cell-title ">\n' +
-                                '               '+blogData.summary+'\n' +
-                                    '        </td>\n' +
-                                '            <td class="cell-title ">\n' +
-                                '               '+newDate.toLocaleDateString()+'\n' +
-                                '        </td>\n' +
-                                '            <td class="cell-title ">\n' +
-                                '               '+blogData.clickHit+'\n' +
-                                '        </td>\n' +
-                                '            <td class="cell-title ">\n' +
-                                '               '+blogData.replyHit+'\n' +
-                                '        </td>\n' +
-                                '            <td class="cell-title ">\n' +
-                                '               '+blogData.content+'\n' +
-                                '        </td>\n' +
-                                '            <td class="cell-title align-center">\n' +
-                                '               '+blogData.blogArticle.typeName+'\n' +
-                                '        </td>\n' +
-                                '            <td class="cell-title ">\n' +
-                                '               '+blogData.keyWord+'\n' +
-                                '        </td>\n' +
-
-                                '       </tr>';
+                                '            <td class="cell-icon hidden-phone hidden-tablet">\n' +
+                                '                <!-- <i class="icon-paper-clip"></i>-->\n' +
+                                '                </td>               \n' +
+                                '                <td class="cell-time align-right">\n' +
+                                '               '+articleData.orderNo+'\n' +
+                                '            </td>\n' +
+                                '            </tr>';
 
                             trs += tr;
                         }
-                        $("#blogData").html(trs);
+                        $("#blogArticleData").html(trs);
 
 
                         /*-----------内部分割线：删除方法------------*/
-                        //与文章类型功能类似，复制部分代码
-                        //1 给删除按钮添加点击事件，发送ajax请求，将ids传递至后台
-                        $("#deleteBlog").click(function () {
-                            //1.1 遍历复选框，获得选择的复选框编号
 
+                        //删除文章类型方法：因为要将获取的复选框和编号对应上，才能删除对应数据库数据，故将删除方法写在开始加载页面的方法中，才能获取数据编号ID
+                        //1 给删除按钮添加点击事件，发送ajax请求，将ids传递至后台
+                        $("#delete").click(function () {
+                            //1.1 遍历复选框，获得选择的复选框编号
                             var ids = [] ; //复选框对应的数据编号顺序数组
                             //1.2 遍历复选框
-                            $("input[name = 'blogId']").each(function () {
-                                if($(this).is(":checked"))  {
+                            //复选框对象
+                            $("input[name = 'blogTypeId']").each(function () {
+                                if($(this).is(":checked"))   {
                                     //1.3根据分页查询的数据获取每条数据的编号id
-                                    id_delete =$(this).val(); //解释放在ArticleType.html同样删除方法里
+                                    /*
+                                           id_delete = pb.resultList[i].id;
+                                           这样写有BUG，因为这里已经跳出了遍历循环，获取的id值是不准确的，在正序的时候没看出来，到了blogManage.html
+                                           页面显示数据为逆序，删除的时候仍是按顺序删除的*/
+
+                                    //新写法，在上面动态创建的复选框中添加value属性值，并且动态赋上对应id值，然后用val()方法获取value值即可
+                                    id_delete = $(this).val();
+                                  /*  alert(id_delete);*/
                                     //1.4得到所选择的id数组
-                                   /* alert(id_delete);*/
                                     ids.push(id_delete);
                                 }
+
                             })
+
+
                             //1.4 判断是否有选中数据删除
                             if (ids.length <= 0 ){
                                 alert("请选择要删除的数据！");
                             }else {
                                 //1.5 提示是否删除
-                                $("#deleteTipBlog").modal('show');
-                                $("#tip_deleteBlog").html("确定要删除这"+ids.length+"条数据吗？");
+                                $("#deleteTip").modal('show');
+                                $("#tip_delete").html("确定要删除这"+ids.length+"条数据吗？");
                                 //1.6 给确认按钮添加点击事件
-                                $("#confirm_deleteBlog").click(function () {
+                                $("#confirm_delete").click(function () {
                                     //2 发送ajax请求，判断删除效果
-                                    $.post("../admin/blog/blogDelete",{ids:ids},function (info) {
+                                    $.post("../admin/blogArticle/delete",{ids:ids},function (info) {
                                         //2.1获取后台传递的提示信息，前台提示用户
                                         if (info.flag){
                                             alert("删除成功！");
                                             location.reload();
-                                        }else {
-                                            alert("删除失败，请重试！");
+                                        } else {
+
+                                            if (info.errorInfo == "1"){
+                                                alert("该类型被文章引用，不能删除!");
+                                                location.reload();
+                                            }else {
+                                                alert("删除失败，请重试！");
+                                            }
+
                                         }
+
+
+
+
                                     },"json")
                                 })
                             }
                         })
 
                         /*-----------内部分割线:修改方法------------*/
-                        //给更改按钮添加点击事件
-                        $("#updateBlog").click(function () {
-                            //点击修改后,判断此时是否有选中某行
+                        //修改单条文章类型方法：
+                        //1.给修改按钮添加点击事件，先回显，再更新
+                        $("#update").click(function () {
+                            //1.1获取复选框选中对象
                             var count = 0; //记录被选择的复选框数量
                             var id_update = 0; //复选框对应的数据编号顺序（后面用作回显查询数据Id）
                             //1.1.1遍历复选框，记录被选择复选框个数与id
-                            $("input[name = 'blogId']").each(function () {
+                            //复选框对象
+                            $("input[name = 'blogTypeId']").each(function () {
                                 //如果被选择
                                 if($(this).is(":checked"))  {
-                                    //记录+1
+                                    //记录当前编号值
                                     id_update = $(this).val();
+                                    alert(id_update)
+                                    //记录+1
                                     count = count + 1;
                                 }
                             })
@@ -307,20 +300,79 @@
                             }
                             //1.4如果选择了一个，则发送ajax请求回显数据
                             if (count == 1) {
-                                //打开一个新页面，博客修改页面
-                               open("http://localhost:80/blog_war_exploded/admin/updateBlog.html?id="+id_update);
-                            }
 
+                                var typeName_update ;
+                                var orderNo_update;
+
+                                //2.发送ajax请求回显所选择的数据
+                                $.get("../admin/blogArticle/relook", {id_update: id_update}, function (BlogArticle) {
+
+                                    //2.1获取回显值
+                                    var oldTypeName = $("#typeName_update").val(BlogArticle.typeName);
+                                    var oldOrderNo = $("#orderNo_update").val(BlogArticle.orderNo);
+                                    //2.2打开修改模态框
+                                    $("#updateModal").modal('show');
+
+                                    //2.3第一条数据如果改变，则保存新数据
+                                    $("#typeName_update").change(function () {
+                                        typeName_update = $(this).val();
+                                    })
+
+                                    //2.4第二条数据如果改变，则保存新数据，传递给后台
+                                    $("#orderNo_update").change(function () {
+                                        orderNo_update = $(this).val();
+                                    })
+
+                                    //2.5 给保存修改按钮加一个点击事件，保存变化值
+                                    $("#update_submit").click(function () {
+                                        if ((typeName_update != oldTypeName) ||( orderNo_update !=oldOrderNo) ) {
+                                            //打开确认提示框
+                                            $("#updateTip").modal('show');
+                                            $("#tip_update").html("确定要修改吗？")
+                                            //给确认按钮添加点击事件
+                                            $("#confirm_update").click(function () {
+                                                //调用更新方法修改数据
+                                                if (typeName_update == undefined && orderNo_update == undefined) {
+                                                    //如果都没修改，则给默认值
+                                                    typeName_update = null;
+                                                    orderNo_update = null;
+                                                    update(id_update, typeName_update, orderNo_update);
+                                                    $("#updateTip").modal('hide');
+                                                } else if (typeName_update == undefined ) {
+                                                    typeName_update = null;
+                                                    update(id_update, typeName_update, orderNo_update);
+                                                    $("#updateTip").modal('hide');
+                                                } else if (orderNo_update == undefined) {
+                                                    orderNo_update = null;
+                                                    update(id_update, typeName_update, orderNo_update);
+                                                    $("#updateTip").modal('hide');
+                                                } else {
+                                                    update(id_update, typeName_update, orderNo_update);
+                                                    $("#updateTip").modal('hide');
+                                                }
+                                            })
+                                        }
+                                    })
+
+                                    //点击关闭刷新页面
+                                    $("#updateClose").click(function () {
+                                        location.reload();
+                                    })
+                                    //点击关闭刷新页面
+                                    $("#close").click(function () {
+                                        location.reload();
+                                    })
+
+                                }, "json")
+                            }
                         })
 
+                        /*-----------内部分割线：修改方法结束------------*/
 
                     },"json")
 
 
             }
-
-
-
 
         </script>
 
@@ -331,14 +383,19 @@
             <div class="navbar-inner">
                 <div class="container">
                     <a class="btn btn-navbar" data-toggle="collapse" data-target=".navbar-inverse-collapse">
-                        <i class="icon-reorder shaded"></i></a><a class="brand" href="back.html">博客管理 </a>
+                        <i class="icon-reorder shaded"></i></a><a class="brand" href="/admin/back.html">文章类型管理 </a>
                     <div class="nav-collapse collapse navbar-inverse-collapse">
                         <ul class="nav nav-icons">
                             <li class="active"><a href="#"><i class="icon-envelope"></i></a></li>
                             <li><a href="#"><i class="icon-eye-open"></i></a></li>
                             <li><a href="#"><i class="icon-bar-chart"></i></a></li>
                         </ul>
-
+                        <form class="navbar-search pull-left input-append" action="#">
+                        <input type="text" class="span3">
+                        <button class="btn" type="button">
+                            <i class="icon-search"></i>
+                        </button>
+                        </form>
                         <ul class="nav pull-right">
                             <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">Dropdown
                                 <b class="caret"></b></a>
@@ -415,7 +472,7 @@
                             <!--/.widget-nav-->
                             <ul class="widget widget-menu unstyled">
                                 <li><a href="/admin/ui-button-icon.html"><i class="menu-icon icon-bold"></i> Buttons </a></li>
-                                <li><a href="/admin/writeBlog.html"><i class="menu-icon icon-book"></i>writeBlog </a></li>
+                                <li><a href="/admin/ui-typography.writeBlog.html"><i class="menu-icon icon-book"></i>Typography </a></li>
                                 <li><a href="/admin/form.html"><i class="menu-icon icon-paste"></i>Forms </a></li>
                                 <li><a href="/admin/table.html"><i class="menu-icon icon-table"></i>Tables </a></li>
                                 <li><a href="/admin/charts.html"><i class="menu-icon icon-bar-chart"></i>Charts </a></li>
@@ -442,35 +499,43 @@
                             <div class="module message">
                                 <div class="module-head">
                                     <h3>
-                                        博客数据</h3>
+                                        博客文章类别</h3>
                                 </div>
-
                                 <div class="module-option clearfix">
-
-                                    <!--查询搜索框-->
-                                    <form class="navbar-search pull-left input-append" action="#">
-                                        <input type="text" class="span3" id="blogTitle" name="title">
-                                        <button class="btn" type="button" id="titleQuery">
-                                            <i class="icon-search" ></i>
-                                        </button>
-                                    </form>
+                                    <div class="pull-left">
+                                        <div class="btn-group">
+                                            <button class="btn">
+                                                Inbox</button>
+                                            <button class="btn dropdown-toggle" data-toggle="dropdown">
+                                                <span class="caret"></span>
+                                            </button>
+                                            <ul class="dropdown-menu">
+                                                <li><a href="#">Inbox(11)</a></li>
+                                                <li><a href="#">Sent</a></li>
+                                                <li><a href="#">Draft(2)</a></li>
+                                                <li><a href="#">Trash</a></li>
+                                                <li class="divider"></li>
+                                                <li><a href="#">Settings</a></li>
+                                            </ul>
+                                        </div>
+                                    </div>
 
                                     <!--增删改信息按钮-->
                                     <div class="pull-right" >
-                                        <button class="btn btn-danger "  id="deleteBlog">删除</button>
+                                        <button class="btn btn-danger "  id="delete">删除</button>
                                     </div>
                                     <div class="pull-right" >
-                                        <button class="btn btn-info "  id="updateBlog">更改</button>
+                                        <button class="btn btn-info "  id="update">更改</button>
                                     </div>
                                     <div class="pull-right" >
-                                        <button class="btn btn-success " ><a href="writeBlog.html" style="color: white">添加</a></button>
+                                        <button class="btn btn-success " data-toggle="modal" data-target="#addModal" id="add">添加</button>
                                     </div>
+
+
                                 </div>
-
-
                                 <div class="module-body table">
                                     <table class="table table-message">
-                                        <tbody id="blogData">
+                                        <tbody id="blogArticleData">
                                             <tr class="heading">
                                                 <td class="cell-check">
                                                     <input type="checkbox" class="inbox-checkbox">
@@ -495,7 +560,7 @@
                                             <tr class="unread">
                                                 <!--复选框-->
                                                 <td class="cell-check">
-                                                    <input type="checkbox" name="blogData" class="inbox-checkbox">
+                                                    <input type="checkbox" class="inbox-checkbox">
                                                 </td>
                                                 <!--星星图标-->
                                                 <td class="cell-icon">
@@ -520,80 +585,128 @@
                                                 </td>
                                             </tr>
 
-
-                                            <!-- 修改模态框（Modal） -->
-                                            <div class="modal fade" id="updateModalBlog" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                                            <!-- 添加模态框（Modal） -->
+                                            <div class="modal fade" id="addModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
                                                 <div class="modal-dialog">
                                                     <div class="modal-content" >
                                                         <div class="modal-header">
                                                             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                                                            <h4 class="modal-title" id="myUpdateBlog">修改一条博客类型记录</h4>
+                                                            <h4 class="modal-title" id="myAdd">添加一条博客类型记录</h4>
                                                         </div>
                                                         <div class="modal-body">
                                                             文章类别名称：
-                                                            <input type="text" id="typeName_updateBlog" name="typeName" required="true" ><br>
+                                                            <input type="text" id="typeName" name="typeName" required="true" ><br>
 
                                                             文章类别序号：
-                                                            <input type="text" id="orderNo_updateBlog" name="orderNo" required="true" ><br>
-                                                            <span ><font color="#1e90ff" id="updateMsgBlog" ></font></span>
+                                                           <input type="text" id="orderNo" name="orderNo" required="true" ><br>
+                                                            <span ><font color="#1e90ff" id="addMsg" ></font></span>
+
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-default" id="addClose"  data-dismiss="modal">关闭</button>
+                                                            <button type="button" class="btn btn-primary" id="add_submit">保存</button>
+                                                        </div>
+                                                    </div><!-- /.modal-content -->
+                                                </div><!-- /.modal -->
+                                            </div>
+
+                                            <!-- 修改模态框（Modal） -->
+                                            <div class="modal fade" id="updateModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                                                <div class="modal-dialog">
+                                                    <div class="modal-content" >
+                                                        <div class="modal-header">
+                                                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true" id="close">&times;</button>
+                                                            <h4 class="modal-title" id="myUpdate">修改一条博客类型记录</h4>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            文章类别名称：
+                                                            <input type="text" id="typeName_update" name="typeName" required="true" ><br>
+
+                                                            文章类别序号：
+                                                            <input type="text" id="orderNo_update" name="orderNo" required="true" ><br>
+                                                            <span ><font color="#1e90ff" id="updateMsg" ></font></span>
+
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-default" data-dismiss="modal" id="updateClose">关闭</button>
+                                                            <button type="button" class="btn btn-primary" id="update_submit">保存修改</button>
+                                                        </div>
+                                                    </div><!-- /.modal-content -->
+                                                </div><!-- /.modal -->
+                                            </div>
+
+                                            <!-- 删除模态框（Modal） -->
+                                            <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                                                <div class="modal-dialog">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                                                            <h4 class="modal-title" id="myModalLabel">删除一条博客类型记录</h4>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            文章类别名称：
+                                                            <input type="text" id="typeName_delete" name="typeName" required="true" ><br>
+
+                                                            文章类别序号：
+                                                            <input type="text" id="orderNo_delete" name="orderNo" required="true" ><br>
+                                                            <span ><font color="#1e90ff" id="Msg" ></font></span>
 
                                                         </div>
                                                         <div class="modal-footer">
                                                             <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
-                                                            <button type="button" class="btn btn-primary" id="update_submitBlog">保存修改</button>
+                                                            <button type="button" class="btn btn-primary" id="delete_submit">确认删除</button>
                                                         </div>
                                                     </div><!-- /.modal-content -->
                                                 </div><!-- /.modal -->
                                             </div>
 
 
-
-
                                             <!--修改确认提示框-->
-                                            <div class="modal fade" id="updateTipBlog" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+                                            <div class="modal fade" id="updateTip" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
                                                 <div class="modal-dialog " role="document">
                                                     <div class="modal-content" >
                                                         <div class="modal-header">
                                                             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
-                                                            <h4 class="modal-title" id="updateModalLabelBlog">提示</h4>
+                                                            <h4 class="modal-title" id="updateModalLabel">提示</h4>
                                                         </div>
                                                         <div class="modal-body">
                                                             <form>
                                                                 <div class="form-group">
-                                                                    <label  class="control-label" id="tip_updateBlog">确定要修改吗？</label>
+                                                                    <label  class="control-label" id="tip_update">确定要修改吗？</label>
                                                                 </div>
                                                             </form>
                                                         </div>
                                                         <div class="modal-footer">
                                                             <button type="button" class="btn btn-default" data-dismiss="modal">返回</button>
-                                                            <button type="button" class="btn btn-primary" id="confirm_updateBlog">确认</button>
+                                                            <button type="button" class="btn btn-primary" id="confirm_update">确认</button>
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
 
                                             <!--删除确认提示框-->
-                                            <div class="modal fade" id="deleteTipBlog" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+                                            <div class="modal fade" id="deleteTip" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
                                                 <div class="modal-dialog " role="document">
                                                     <div class="modal-content" >
                                                         <div class="modal-header">
                                                             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
-                                                            <h4 class="modal-title" id="deleteModalLabelBlog">提示</h4>
+                                                            <h4 class="modal-title" id="deleteModalLabel">提示</h4>
                                                         </div>
                                                         <div class="modal-body">
                                                             <form>
                                                                 <div class="form-group">
-                                                                    <label  class="control-label" id="tip_deleteBlog">确定要删除吗？</label>
+                                                                    <label  class="control-label" id="tip_delete">确定要删除吗？</label>
                                                                 </div>
                                                             </form>
                                                         </div>
                                                         <div class="modal-footer">
                                                             <button type="button" class="btn btn-default" data-dismiss="modal">返回</button>
-                                                            <button type="button" class="btn btn-primary" id="confirm_deleteBlog">确认</button>
+                                                            <button type="button" class="btn btn-primary" id="confirm_delete">确认</button>
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
+
 
 
 

@@ -1,6 +1,7 @@
 package blog.service.impl;
 
 import blog.dao.BlogDao;
+import blog.dao.CommentDao;
 import blog.entity.Blog;
 import blog.service.BlogService;
 import org.springframework.stereotype.Service;
@@ -14,6 +15,9 @@ public class BlogServiceImpl implements BlogService {
 
     @Resource
     private BlogDao blogDao;
+
+    @Resource
+    private CommentDao commentDao;
 
     @Override
     public List<Blog> countList() {
@@ -59,6 +63,9 @@ public class BlogServiceImpl implements BlogService {
         Integer count = 0;
         Integer resultInt = 0; //返回数据
         for (Integer id :ids){
+            //还需要将对应的博客评论级联删除
+            commentDao.deleteByBlogId(id);
+
             count = blogDao.delete(id);
             //每删除一个就判断一次是否删除成功
             if (count > 0){
