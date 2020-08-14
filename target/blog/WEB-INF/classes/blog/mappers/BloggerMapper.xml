@@ -20,4 +20,26 @@
          select * from t_blogger where userName=#{userName} and password=#{password}
 
     </select>
+
+    <!--根据密码查询博主-->
+    <select id="findBlogger"  resultMap="BloggerResult" parameterType="String">
+
+         select * from t_blogger where  password=#{password}
+
+    </select>
+
+    <!--修改密码-->
+    <update id="updatePassword"   parameterType="String" >
+
+         update t_blogger
+         <set>
+             <if test="password != null">
+                 password = #{password},
+             </if>
+         </set>
+
+         where id = 1
+
+    </update>
+
 </mapper>

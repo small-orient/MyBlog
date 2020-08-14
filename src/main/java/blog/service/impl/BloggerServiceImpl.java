@@ -22,4 +22,16 @@ public class BloggerServiceImpl implements BloggerService {
 
         return bloggerDao.getByUserName(userName,password);
     }
+
+    //根据密码查询博主
+    @Override
+    public Blogger findBlogger(String oldPassword) {
+        return bloggerDao.findBlogger(oldPassword);
+    }
+
+    //修改密码
+    @Override
+    public Integer updatePassword(String password) {
+        return bloggerDao.updatePassword(password);
+    }
 }
