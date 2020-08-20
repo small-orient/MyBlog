@@ -3,7 +3,7 @@
 <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>评论管理</title>
+        <title>评论审核</title>
         <link type="text/css" href="../static/bootstrap/css/bootstrap.min.css" rel="stylesheet">
         <link type="text/css" href="../static/bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet">
         <link type="text/css" href="../static/css/theme.css" rel="stylesheet">
@@ -11,7 +11,7 @@
         <link type="text/css" href='http://fonts.googleapis.com/css?family=Open+Sans:400italic,600italic,400,600'
             rel='stylesheet'>
 
-    <!--博客管理页面-->
+    <!--评论审核页面-->
 
 
     <!--引入JQ-->
@@ -25,10 +25,10 @@
 
 
 
-
+                var state= "0";
 
                 //调用分页方法
-                loadCommentData();
+                loadCommentData(null,state);
 
 
 
@@ -71,13 +71,12 @@
 
 
             //封装分页方法
-            function loadCommentData(currentPage) {
-                    $.get("../admin/comment/list?state=0",{currentPage:currentPage},function (map) {
-
+            function loadCommentData(currentPage,state) {
+                    $.get("../admin/comment/list",{currentPage:currentPage,state:state},function (map) {
                         /*分页页码*/
                         var lis = "";
                         //定义首页：因为后台当前页默认为1，故首页不用传页码数据
-                        var firstPage = '<li><a href="javascript:loadCommentData(1)">首页</a></li>';
+                        var firstPage = '<li><a href="javascript:loadCommentData(1,'+state+')">首页</a></li>';
                         lis += firstPage;
                         //定义上一页
                         if (map.pb.currentPage > 1){
@@ -85,7 +84,7 @@
                         }else {
                             upPageNo = 1;
                         }
-                        var upPage = '<li><a href="javascript:loadCommentData('+ upPageNo+')"></i>上一页</a></li>';
+                        var upPage = '<li><a href="javascript:loadCommentData('+ upPageNo+','+state+')"></i>上一页</a></li>';
                         lis += upPage;
 
                         //设置分页页码数量
@@ -115,7 +114,7 @@
                         }
 
                         for (var i = begin; i <= end; i++){
-                            var li = '<li ><a href="javascript:loadCommentData('+i+')">'+i+'</a></li>';
+                            var li = '<li ><a href="javascript:loadCommentData('+i+','+state+')">'+i+'</a></li>';
                             lis += li;
                         }
 
@@ -126,10 +125,10 @@
                         }else {
                             nextPageNo = map.total
                         }
-                        var nextPage = '<li><a href="javascript:loadCommentData('+nextPageNo+')">下一页</a></li>';
+                        var nextPage = '<li><a href="javascript:loadCommentData('+nextPageNo+','+state+')">下一页</a></li>';
                         lis += nextPage;
                         //定义末页
-                        var endPage = '<li><a href="javascript:loadCommentData('+map.total+')">末页</a></li>';
+                        var endPage = '<li><a href="javascript:loadCommentData('+map.total+','+state+')">末页</a></li>';
                         lis += endPage;
                         //将lis放入ul中
                         $("#pageNum").html(lis);
@@ -290,7 +289,7 @@
                                     <a class="collapsed" data-toggle="collapse" href="#wzlx"><i class="menu-icon icon-cog"></i>
                                         <i class="icon-chevron-down pull-right"></i>
                                         <i class="icon-chevron-up pull-right"></i>
-                                        文章类型管理
+                                        文章类型
                                     </a>
                                     <ul id="wzlx" class="collapse unstyled">
                                         <li><a id="articleTypeData" href="ArticleTypeManage.html"><i class="icon-inbox"></i>文章类型数据</a></li>

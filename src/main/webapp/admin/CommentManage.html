@@ -30,38 +30,10 @@
                 //调用分页方法
                 loadCommentData();
 
-/*
-
-                //调用查询方法
-                search();
-*/
-/*
-                //给搜索框添加个回车事件，让回车也具有点击按钮同样功能
-                $("#CommentTitle").keyup(function (event) {
-                    if (event.keyCode == 13){
-                        $("#titleQuery").click();
-
-                        //ps：有个莫名BUG未解决，第一次点击回车事件时，可正常搜索，第二次回车时，
-                        // 页面location.href的路径变为了：http://localhost/Comment_war_exploded/admin/CommentManage.html?#，查询不出指定结果，
-                        // 而再查一次又恢复正常
-                    }
-                })*/
 
             })
 
 
-
-
-          /*  //搜索框添加查询方法
-            function search(){
-                //给搜索按钮添加一个点击事件
-                $("#titleQuery").click(function () {
-                    //获取搜索框的值
-                    title = $("#CommentTitle").val();
-                    //做一个页面跳转（因为跳的是原来的页面相当于刷新），传递title值，用于AJAX请求
-                    location.href = "http://localhost:80/Comment_war_exploded/admin/CommentManage.html?title="+title;
-                })
-            }*/
 
 
 
@@ -168,13 +140,37 @@
                             var newDate = new Date();
                             newDate.setTime(date);
 
+
+                            //定义状态栏变量
+                            var stateTr = '';
+                            var stateTd = '';
                             //做一个评论状态判断
                             if (CommentData.state == 0){
                                 CommentData.state = "未审核";
+
+                                stateTd +=  '<td class="cell-title">\n' +
+                                    '               '+CommentData.state+'\n' +
+                                    '        </td>\n' +
+                                    '       </tr>';
+                                stateTr += stateTd;
                             }else if (CommentData.state == 1){
+
                                 CommentData.state = "审核已通过";
+                                //审核通过则赋予颜色变化
+                                 stateTd +=  '<td class="cell-title" style="color: green">\n' +
+                                    '               '+CommentData.state+'\n' +
+                                    '        </td>\n' +
+                                    '       </tr>';
+                                stateTr += stateTd;
+
                             }else if (CommentData.state == 2){
+                                //未通过同样给颜色提示
                                 CommentData.state = "审核未通过";
+                                 stateTd +=  ' <td class="cell-title" style="color: red">\n' +
+                                '               '+CommentData.state+'\n' +
+                                '        </td>\n' +
+                                '       </tr>';
+                               stateTr += stateTd;
                             }
 
 
@@ -201,11 +197,11 @@
                                 '        </td>\n' +
                                 '            <td class="cell-title ">\n' +
                                 '               '+newDate.toLocaleDateString()+'\n' +
-                                '        </td>\n' +
-                                '            <td class="cell-title ">\n' +
-                                '               '+CommentData.state+'\n' +
-                                '        </td>\n' +
-                                '       </tr>';
+                                '        </td>\n';
+
+
+                             tr += stateTr;
+
 
                             trs += tr;
                         }
@@ -336,7 +332,7 @@
                                     <a class="collapsed" data-toggle="collapse" href="#wzlx"><i class="menu-icon icon-cog"></i>
                                         <i class="icon-chevron-down pull-right"></i>
                                         <i class="icon-chevron-up pull-right"></i>
-                                        文章类型管理
+                                        文章类型
                                     </a>
                                     <ul id="wzlx" class="collapse unstyled">
                                         <li><a id="articleTypeData" href="ArticleTypeManage.html"><i class="icon-inbox"></i>文章类型数据</a></li>

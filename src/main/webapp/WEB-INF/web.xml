@@ -32,6 +32,18 @@
     <url-pattern>/*</url-pattern>
   </filter-mapping>
 
+  <!--配置自定义登录验证过滤器-->
+  <filter>
+    <filter-name>loginFilter</filter-name>
+    <filter-class>blog.filter.LoginFilter</filter-class>
+  </filter>
+
+  <!--自定义登录验证过滤器过滤内容-->
+  <filter-mapping>
+    <filter-name>loginFilter</filter-name>
+    <url-pattern>/admin/*</url-pattern>
+  </filter-mapping>
+
   <!--配置spring监听器-->
   <listener>
     <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
@@ -76,6 +88,7 @@
     <servlet-name>default</servlet-name>
     <url-pattern>*.gif</url-pattern>
   </servlet-mapping>
+
   <servlet-mapping>
     <servlet-name>default</servlet-name>
     <url-pattern>*.html</url-pattern>

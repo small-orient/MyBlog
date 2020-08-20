@@ -79,22 +79,25 @@ public class BloggerController {
     //根据密码查询博主
     @RequestMapping("/findBlogger")
     public @ResponseBody
-    String findBlogger(@RequestParam(value = "oldPassword") String oldPassword) {
+    String findBlogger(@RequestParam(value = "oldPassword") String oldPassword,HttpServletRequest request) {
 
-        Blogger blogger = null;
-        if (oldPassword != null && oldPassword.length() > 0) {
-            blogger = bloggerService.findBlogger(oldPassword);
-        }
-
-
-        //用于将info类型数据写为String，然后返回
-        ObjectMapper mapper = new ObjectMapper();
         String result = "";
-        try {
-            //将info写成字符串
-            result = mapper.writeValueAsString(blogger);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
+        //判断是否在登录状态，否则不反应数据
+        if (request.getSession().getAttribute("username").equals("admin")) {
+            Blogger blogger = null;
+            if (oldPassword != null && oldPassword.length() > 0) {
+                blogger = bloggerService.findBlogger(oldPassword);
+            }
+
+
+            //用于将info类型数据写为String，然后返回
+            ObjectMapper mapper = new ObjectMapper();
+            try {
+                //将info写成字符串
+                result = mapper.writeValueAsString(blogger);
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+            }
         }
 
         return result;
@@ -103,23 +106,24 @@ public class BloggerController {
 
     //修改密码
     @RequestMapping(value = "/updatePassword", method = RequestMethod.POST)
-    public @ResponseBody
-    String updatePassword(@RequestParam(value = "password") String password) {
-        Integer count = 0;
-        if (password != null && password.length() > 0) {
-            count = bloggerService.updatePassword(password);
-        }
+    public @ResponseBody String updatePassword(@RequestParam(value = "password") String password) {
 
+            Integer count = 0;
+            String result = "";
 
-        //用于将info类型数据写为String，然后返回
-        ObjectMapper mapper = new ObjectMapper();
-        String result = "";
-        try {
-            //将info写成字符串
-            result = mapper.writeValueAsString(count);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
+            if (password != null && password.length() > 0) {
+                count = bloggerService.updatePassword(password);
+            }
+
+            //用于将info类型数据写为String，然后返回
+            ObjectMapper mapper = new ObjectMapper();
+            try {
+                //将info写成字符串
+                result = mapper.writeValueAsString(count);
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+            }
+
 
         return result;
     }
@@ -129,8 +133,9 @@ public class BloggerController {
     @RequestMapping(value = "/logout")
     public @ResponseBody String logOut(HttpServletRequest request) {
         //注销session
-        request.getSession().removeAttribute("username");
-        request.getSession().invalidate();
+        HttpSession session = request.getSession();
+        session.removeAttribute("username");
+        session.invalidate();
         //回到登录页面
 
         return null;

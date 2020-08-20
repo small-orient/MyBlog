@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="blog.dao.IndexDao">
+
+    <resultMap id="LinkResult" type="Link">
+        <id property="id" column="id"/>
+        <result property="linkName" column="linkName"/>
+        <result property="linkUrl" column="linkUrl"/>
+        <result property="orderNo" column="orderNo"/>
+    </resultMap>
+
+    <resultMap id="BlogArticleResult" type="BlogArticle">
+        <id property="id" column="id"/>
+        <result property="typeName" column="typeName"/>
+        <result property="orderNo" column="orderNo"/>
+        <result property="blogCount" column="blogCount"/>
+    </resultMap>
+
+    <resultMap id="BlogResult" type="Blog">
+        <id property="id" column="id"/>
+        <result property="title" column="title"/>
+        <result property="summary" column="summary"/>
+        <result property="releaseDate" column="releaseDate"/>
+        <result property="clickHit" column="clickHit"/>
+        <result property="replyHit" column="replyHit"/>
+        <result property="content" column="content"/>
+        <result property="keyWord" column="keyWord"/>
+        <association property="blogArticle"
+                     column="articleTypeId" select="blog.dao.BlogArticleDao.findById"/>
+    </resultMap>
+
+
+
+
+    <!-- 无参查询博客文章类别typename-->
+    <select id="findTypeName"  resultMap="BlogArticleResult">
+        select * from t_blogarticle
+    </select>
+
+    <!-- 根据文章类型typename查询文章-->
+    <select id="findByTypeName"  resultMap="BlogArticleResult">
+        select * from t_blogarticle where typeName = #{typeName}
+    </select>
+
+    <!--无参查询博客发布日期-->
+    <select id="findReleaseDate"   resultMap="BlogResult">
+
+        select * from t_blog
+
+    </select>
+
+    <!--无参查询友情链接-->
+    <select id="findLink"   resultMap="LinkResult">
+        select * from t_link
+    </select>
+
+    <!--根据typeName查询博客信息-->
+    <select id="findBlog"  parameterType="Integer" resultMap="BlogResult" >
+        select * from t_blog where articleTypeId = #{articleTypeId}  order by id desc
+    </select>
+
+
+</mapper>

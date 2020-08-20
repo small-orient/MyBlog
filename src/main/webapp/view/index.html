@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<title id="indexTitle"></title>
+	</head>
+
+	<link href="../static/plugin/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+	<link rel="stylesheet" type="text/css" href="../static/css/common.css" />
+	<link href="../logo.ico" rel="shortcut icon" />
+	<script src="../static/plugin/jquery.min.js"></script>
+	<script src="../static/plugin/bootstrap/js/bootstrap.min.js"></script>
+	<!--<script type="text/javascript" src="plugin/jquery.page.js"></script>-->
+	<!--<script src="js/common.js"></script>-->
+	<!--<script src="js/snowy.js"></script>-->
+	<!--引入自定义获取参数Js-->
+	<script src="../static/js/getParameter.js"></script>
+	<script >
+		$(function () {
+
+
+			//动态设置标题title
+			$.post("../view/index/title",{},function (map) {
+				$("#indexTitle").html(map.title);
+			},"json");
+
+
+			//为了再次使用admin/blog/list里的分页方法
+			var title = getParameter("title");
+			//若title是中文的话还有可能产生乱码，故做一个解码操作
+			//如果title有值,不为空
+			if (title){
+				title = window.decodeURIComponent(title);
+			}
+
+
+			//调用分页方法
+			load(null,title);
+
+			//调用热门标签方法
+			findTypeName();
+
+			findLink();
+
+
+
+		})
+
+		//封装分页方法
+		function load(currentPage,title) {
+			$.get("../view/index/list", {currentPage: currentPage, title: title}, function (map) {
+
+				/*分页：
+                    <div  style="text-align: center">
+                            <nav aria-label="Page navigation">
+                            <ul class="pagination" id="page">
+                            <li><a aria-hidden="true">&laquo;首页</a></li>
+                            <li class=""><a href="#">上一页</a></li>
+                            <li class="active"><a href="#">1</a></li>
+                            <li><a href="#">2</a></li>
+                            <li><a href="#">3</a></li>
+                            <li><a href="#">4</a></li>
+                            <li><a href="#">5</a></li>
+                            <li class=""><a href="#">上一页</a></li>
+                            <li><a aria-hidden="true">尾页&raquo;</a></li>
+                            </ul>
+                            </nav>
+                    </div>
+
+                    */
+				//分页页码
+				var lis = "";
+				//定义首页：因为后台当前页默认为1，故首页不用传页码数据
+				var firstPage = '<li><a href="javascript:load(' + 1 + ',\'' + title + '\')">&laquo;首页</a></li>';
+				lis += firstPage;
+				//定义上一页
+				var upPageNo;
+
+				if (map.pb.currentPage > 1) {
+					upPageNo = map.pb.currentPage - 1;
+				} else {
+					upPageNo = 1;
+				}
+				var upPage = '<li><a href="javascript:load(' + upPageNo + ',\'' + title + '\')"></i>上一页</a></li>';
+				lis += upPage;
+
+				//设置分页页码数量
+				var begin;
+				var end;
+				//定义显示6个页码
+				if (map.pb.totalPage < 6) {
+					//不够6页
+					begin = 1;
+					end = map.pb.totalPage;
+				} else {
+					//大于6页
+					begin = map.pb.currentPage - 3;
+					end = map.pb.currentPage + 2;
+
+					//当前页码不足3个,后面就补齐6个
+					if (begin < 1) {
+						begin = 1;
+						end = begin + 5;
+					}
+
+					//最后页码不足2个，前面补齐6个
+					if (end > map.pb.totalPage) {
+						end = map.pb.totalPage;
+						begin = end - 5;
+					}
+				}
+
+				for (var i = begin; i <= end; i++) {
+
+					if (map.pb.currentPage == i) {
+						var li = '<li ><a class="active" href="javascript:load(' + i + ',\'' + title + '\')">' + i + '</a></li>';
+
+					} else {
+						var li = '<li ><a href="javascript:load(' + i + ',\'' + title + '\')">' + i + '</a></li>';
+					}
+					lis += li;
+				}
+
+
+				//定义下一页
+				var nextPageNo;
+				if (map.pb.currentPage < map.pb.totalPage) {
+					nextPageNo = map.pb.currentPage + 1;
+				} else {
+					nextPageNo = map.pb.totalPage
+				}
+				var nextPage = '<li><a href="javascript:load(' + nextPageNo + ',\'' + title + '\')">下一页</a></li>';
+				lis += nextPage;
+				//定义末页
+				var endPage = '<li><a href="javascript:load(' + map.pb.totalPage + ',\'' + title + '\')">尾页&raquo;</a></li>';
+				lis += endPage;
+				//将lis放入ul中,因为没有添加到id=blogContent的div中，故这里的分页不会显示（...这一步本可以不用做的）
+				$("#page").html(lis);
+
+				//数据展示
+				var trs = "";
+				var releaseDateLis = '';
+				//开头的tr
+				for (var i = 0; i < map.list.length; i++) {
+					var articleData = map.list[i];
+					//将字符串转成日期
+					var date = articleData.releaseDate;
+					var newDate = new Date();
+					newDate.setTime(date);
+
+					var tr = '<div class="panel panel-default " >' +
+							'<div class="panel-body" >' +
+							'<h4><a class="title" href="../article_detail.html">' + articleData.title + '</a></h4>' +
+							'\t\t\t\t\t\t\t\t\t\n' + '\t\t\t\t\t\t\t\t\t' +
+							'<p><a class="label label-default">' + articleData.keyWord + '</a>' +
+							'<p class="overView">' + articleData.summary + '</p>' +
+							'<p>' +
+							'<span class="count"><i class="glyphicon glyphicon-eye-open"></i>阅读:' + articleData.clickHit + '</span>' +
+							'<span class="count"><i class="glyphicon glyphicon-comment"></i>评论:' + articleData.replyHit + '</span>' +
+							'<span class="count" id = "releaseDate" ><i class="glyphicon glyphicon-time"></i>' + newDate.toLocaleDateString() + '</span>' +
+							'</p>\n' +
+							'</div>' +
+							'</div>';
+
+					trs += tr;
+
+					//设置置顶头 ps置顶功能没有做
+					if (i == map.list.length-1 ){
+						$("#firstTitle").html(articleData.title);
+					}
+
+					/*发布日期框：
+                        <ul class="list-unstyled sidebar">
+                            <li><a href="/post/04928311">排序算法之冒泡排序 － java实现</a></li>
+                            <li><a href="/post/32097759">快速搭建基于二进制日志文件的 mysql 复制</a></li>
+                        </ul>
+                     */
+
+					var releaseDateLi = '<li style="text-align: center"><a href="#" >'+newDate.toLocaleDateString()+'</a></li>';
+					releaseDateLis += releaseDateLi;
+				   }
+				$("#releaseDate").html(releaseDateLis);
+				$("#blogContent").html(trs);
+
+
+
+
+
+			}, "json");
+
+		}
+
+			//热门标签显示方法
+			function findTypeName() {
+				$.post("../view/index/findTypeName",{},function (resultList) {
+					//定义a标签集合
+					var as = "";
+					for (var i = 0; i < resultList.list.length; i++) {
+						//typename值
+						var value = resultList.list[i].typeName;
+						//定义a标签
+						var a = '<a class="label label-default" target="_blank" href="Data.html?typeName='+value+'"  >' + value + '</a>';
+						as += a;
+					}
+					$("#typeName").html(as);
+
+				},"json");
+			}
+
+			function findLink() {
+				$.post("../view/index/findLink",{},function (result) {
+				/*	<li><a href="https://www.baidu.com/" target="_blank">百度</a></li>
+					<li><a href="https://www.oschina.net/" target="_blank">开源中国</a></li>
+					*/
+					var lis = '';
+					var linkUrl;
+					var linkName;
+					for (var i = 0; i < result.length; i++) {
+						linkUrl = result[i].linkUrl;
+						linkName = result[i].linkName;
+						var li = '<li><a href="https://'+linkUrl+'" target="_blank">'+linkName+'</a></li>';
+						lis += li;
+					}
+
+					$("#link").html(lis);
+				},"json")
+			}
+
+
+	</script>
+	<body>
+		<div class="w_header">
+			<div class="container">
+				<div class="w_header_top">
+					<span class="w_header_nav">
+					<ul>
+						<li><a href="" class="active">首页</a></li>
+						<li><a href="../article.html">博客</a></li>
+						<li><a href="../moodList.html">说说</a></li>
+						<li><a href="../about.html">关于</a></li>
+						<li><a href="../comment.html">留言</a></li>
+
+					</ul>
+				</span>
+					<div class="w_search">
+						<div class="w_searchbox">
+							<input type="text" placeholder="search" />
+							<button>搜索</button>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="w_container">
+			<div class="container">
+				<div class="row w_main_row">
+					<div class="col-lg-9 col-md-9 w_main_left">
+						<!--滚动图开始-->
+						<div class="panel panel-default">
+
+							<div id="w_carousel" class="carousel slide w_carousel" data-ride="carousel">
+								<!-- Indicators -->
+								<ol class="carousel-indicators">
+									<li data-target="#w_carousel" data-slide-to="0" class="active"></li>
+									<li data-target="#w_carousel" data-slide-to="1"></li>
+									<li data-target="#w_carousel" data-slide-to="2"></li>
+									<li data-target="#w_carousel" data-slide-to="3"></li>
+								</ol>
+
+								<!-- Wrapper for slides -->
+								<div class="carousel-inner" role="listbox">
+									<div class="item active">
+										<img src="../static/img/slider/slide1.jpg" alt="...">
+										<div class="carousel-caption">
+											<h3>First slide label</h3>
+											<p>Nulla vitae elit libero, a pharetra augue mollis interdum.</p>
+										</div>
+									</div>
+									<div class="item">
+										<img src="../static/img/slider/slide2.jpg" alt="...">
+										<div class="carousel-caption">...</div>
+									</div>
+									<div class="item">
+										<img src="../static/img/slider/slide3.jpg" alt="...">
+										<div class="carousel-caption">...</div>
+									</div>
+									<div class="item">
+										<img src="../static/img/slider/slide4.jpg" alt="...">
+										<div class="carousel-caption">...</div>
+									</div>
+								</div>
+
+								<!-- Controls -->
+								<a class="left carousel-control" href="#w_carousel" role="button" data-slide="prev">
+									<span class="glyphicon glyphicon-chevron-left"></span>
+									<span class="sr-only">Previous</span>
+								</a>
+								<a class="right carousel-control" href="#w_carousel" role="button" data-slide="next">
+									<span class="glyphicon glyphicon-chevron-right"></span>
+									<span class="sr-only">Next</span>
+								</a>
+							</div>
+
+						</div>
+
+						<div class="panel panel-default contenttop">
+							<a href="../article_detail.html">
+								<strong>博主置顶</strong>
+								<h3 class="title" id="firstTitle"></h3>
+								<p class="overView">个人网站正在建设中。。。</p>
+							</a>
+						</div>
+
+						<div class="panel panel-default">
+							<div class="panel-heading">
+								<h3 class="panel-title">最新发布</h3>
+							</div>
+
+							<div class="panel-body">
+
+								<!--文章列表开始-->
+								<div class="contentList" id="blogContent">
+
+									<!--<div class="panel panel-default blogContent" >
+										<div class="panel-body" >
+											&lt;!&ndash;标题&ndash;&gt;
+											<h4><a class="title" href="../article_detail.html">wfyvv.com</a></h4>
+											&lt;!&ndash;关键字&ndash;&gt;
+											<p>
+												<a class="label label-default">UUID</a>
+												<a class="label label-default">java</a>
+											</p>
+											&lt;!&ndash;部分主体内容&ndash;&gt;
+											<p class="overView">个人网站正在建设中。。。</p>
+											&lt;!&ndash;作者、点击量、评论数、发布时间&ndash;&gt;
+											<p><span class="count"><i class="glyphicon glyphicon-user"></i><a href="#">admin</a></span> <span class="count"><i class="glyphicon glyphicon-eye-open"></i>阅读:666</span><span class="count"><i class="glyphicon glyphicon-comment"></i>评论:18</span><span class="count"><i class="glyphicon glyphicon-time"></i>2017-02-07</span></p>
+										</div>
+									</div>-->
+
+									<!--页码-->
+									<div  style="text-align: center" id="pageNum">
+										<nav aria-label="Page navigation">
+											<ul class="pagination" id="page">
+												<li><a aria-hidden="true">&laquo;首页</a></li>
+												<li class=""><a href="#">上一页</a></li>
+												<li class="active"><a href="#">1</a></li>
+												<li><a href="#">2</a></li>
+												<li><a href="#">3</a></li>
+												<li><a href="#">4</a></li>
+												<li><a href="#">5</a></li>
+												<li class=""><a href="#">上一页</a></li>
+												<li><a aria-hidden="true">尾页&raquo;</a></li>
+											</ul>
+										</nav>
+									</div>
+
+
+								</div>
+								<!--文章列表结束-->
+
+							</div>
+						</div>
+					</div>
+
+					<!--左侧开始-->
+					<div class="col-lg-3 col-md-3 w_main_right">
+
+						<div class="panel panel-default sitetip">
+							<a href="../article_detail.html">
+								<strong>站点公告</strong>
+								<h3 class="title"></h3>
+								<p class="overView">正在建设中。。。</p>
+							</a>
+						</div>
+
+						<div class="panel panel-default">
+							<div class="panel-heading">
+								<h3 class="panel-title">热门标签</h3>
+							</div>
+
+							<div class="panel-body">
+								<div class="labelList" id="typeName">
+									<!--<a class="label label-default">java</a>
+									<a class="label label-default">tomcat负载均衡</a>
+									<a class="label label-default">panel</a>-->
+								</div>
+							</div>
+						</div>
+
+						<div class="panel panel-default">
+							<div class="panel-heading">
+								<h3 class="panel-title">发布日期</h3>
+							</div>
+							<div class="panel-body" >
+								<ul class="list-unstyled sidebar" id="releaseDate">
+									<!--<li><a href="/post/04928311">排序算法之冒泡排序 － java实现</a></li>
+									<li><a href="/post/32097759">快速搭建基于二进制日志文件的 mysql 复制</a></li>
+									<li><a href="/post/09196557">web 服务器负载均衡教程，快速搭建高可用服务器集群</a></li>-->
+								</ul>
+							</div>
+						</div>
+
+						<div class="panel panel-default">
+							<div class="panel-heading">
+								<h3 class="panel-title">友情链接</h3>
+							</div>
+							<div class="panel-body">
+								<div class="newContent">
+									<ul class="list-unstyled sidebar shiplink" id="link">
+										<!--<li><a href="https://www.baidu.com/" target="_blank">百度</a></li>
+										<li><a href="https://www.oschina.net/" target="_blank">开源中国</a></li>-->
+									</ul>
+								</div>
+							</div>
+						</div>
+
+
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="w_foot">
+			<div class="w_foot_copyright">Copyright &copy; 2017-2020, www.wfyvv.com. All Rights Reserved. <span>|</span>
+				<a target="_blank" href="http://www.miitbeian.gov.cn/" rel="nofollow">皖ICP备17002922号</a>
+			</div>
+		</div>
+	</body>
+	<script type="text/javascript">
+		var $backToTopEle = $('<a href="javascript:void(0)" class="Hui-iconfont toTop" title="返回顶部" alt="返回顶部" style="display:none">^</a>').appendTo($("body")).click(function() {
+			$("html, body").animate({ scrollTop: 0 }, 120);
+		});
+		var backToTopFun = function() {
+			var st = $(document).scrollTop(),
+				winh = $(window).height();
+			(st > 0) ? $backToTopEle.show(): $backToTopEle.hide();
+			/*IE6下的定位*/
+			if(!window.XMLHttpRequest) {
+				$backToTopEle.css("top", st + winh - 166);
+			}
+		};
+
+		$(function() {
+			$(window).on("scroll", backToTopFun);
+			backToTopFun();
+		});
+	</script>
+
+</html>

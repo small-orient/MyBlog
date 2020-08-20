@@ -117,4 +117,22 @@ public class Blog implements Serializable {
     public void setBlogCount(Integer blogCount) {
         this.blogCount = blogCount;
     }
+
+    @Override
+    public String toString() {
+        return "Blog{" +
+                "id=" + id +
+                ", title='" + title + '\'' +
+                ", summary='" + summary + '\'' +
+                ", releaseDate=" + releaseDate +
+                ", clickHit=" + clickHit +
+                ", replyHit=" + replyHit +
+                ", content='" + content + '\'' +
+                ", blogArticle=" + blogArticle +
+                ", keyWord='" + keyWord + '\'' +
+                ", contentNoTag='" + contentNoTag + '\'' +
+                ", releaseDateStr='" + releaseDateStr + '\'' +
+                ", blogCount=" + blogCount +
+                '}';
+    }
 }

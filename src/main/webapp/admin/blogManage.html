@@ -92,9 +92,10 @@
                         /*分页页码*/
                         var lis = "";
                         //定义首页：因为后台当前页默认为1，故首页不用传页码数据
-                        var firstPage = '<li><a href="javascript:loadBlogData(1,\''+title+'\')">首页</a></li>';
+                        var firstPage = '<li><a href="javascript:loadBlogData('+1+',\''+title+'\')">首页</a></li>';
                         lis += firstPage;
                         //定义上一页
+                        var upPageNo;
                         if (map.pb.currentPage > 1){
                             upPageNo = map.pb.currentPage-1;
                         }else {
@@ -107,10 +108,10 @@
                         var begin;
                         var end;
                         //定义显示6个页码
-                        if (map.total < 6 ){
+                        if (map.pb.totalPage < 6 ){
                             //不够6页
                             begin = 1;
-                            end = map.total;
+                            end = map.pb.totalPage;
                         }else {
                             //大于6页
                             begin = map.pb.currentPage - 3;
@@ -123,8 +124,8 @@
                             }
 
                             //最后页码不足2个，前面补齐6个
-                            if (end > map.total){
-                                end = map.total;
+                            if (end > map.pb.totalPage){
+                                end = map.pb.totalPage;
                                 begin = end - 5;
                             }
                         }
@@ -136,15 +137,16 @@
 
 
                         //定义下一页
-                        if (map.pb.currentPage < map.total){
+                        var nextPageNo;
+                        if (map.pb.currentPage < map.pb.totalPage){
                             nextPageNo =  map.pb.currentPage + 1 ;
                         }else {
-                            nextPageNo = map.total
+                            nextPageNo = map.pb.totalPage;
                         }
                         var nextPage = '<li><a href="javascript:loadBlogData('+nextPageNo+',\''+title+'\')">下一页</a></li>';
                         lis += nextPage;
                         //定义末页
-                        var endPage = '<li><a href="javascript:loadBlogData('+map.total+',\''+title+'\')">末页</a></li>';
+                        var endPage = '<li><a href="javascript:loadBlogData('+map.pb.totalPage+',\''+title+'\')">末页</a></li>';
                         lis += endPage;
                         //将lis放入ul中
                         $("#pageNum").html(lis);
@@ -396,7 +398,7 @@
                                     <a class="collapsed" data-toggle="collapse" href="#wzlx"><i class="menu-icon icon-cog"></i>
                                         <i class="icon-chevron-down pull-right"></i>
                                         <i class="icon-chevron-up pull-right"></i>
-                                        文章类型管理
+                                        文章类型
                                     </a>
                                     <ul id="wzlx" class="collapse unstyled">
                                         <li><a id="articleTypeData" href="ArticleTypeManage.html"><i class="icon-inbox"></i>文章类型数据</a></li>
