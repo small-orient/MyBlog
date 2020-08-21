@@ -38,7 +38,7 @@ public class BlogAdminController {
 
     //保存单条博客功能
     @RequestMapping("/save")
-    public @ResponseBody String save(
+    public @ResponseBody ResultInfo save(
             @Param(value = "id") Integer id,
             @Param(value = "title") String title,
             @Param(value = "articleType") String articleType,
@@ -47,7 +47,6 @@ public class BlogAdminController {
             @Param(value = "keyWord") String keyWord 
             ){
 
-        String resultInfo = "";
 
          Blog blog = new Blog();
 
@@ -84,7 +83,6 @@ public class BlogAdminController {
             //返回信息结果
             ResultInfo info = new ResultInfo();
 
-            ObjectMapper mapper = new ObjectMapper();
 
             if (count > 0) {
                 info.setFlag(true);
@@ -94,28 +92,18 @@ public class BlogAdminController {
 
 
 
-            try {
-                resultInfo = mapper.writeValueAsString(info);
-            } catch (JsonProcessingException e) {
-                e.printStackTrace();
-            }
-
-        return resultInfo;
+        return info;
     }
 
     //博客查询功能
     @RequestMapping("/list")
-    public @ResponseBody String list(
+    public @ResponseBody Map<String, Object> list(
             @RequestParam(value = "currentPage",required = false) String currentPageStr,
             @RequestParam(value = "pageSize",required = false) String pageSizeStr,
             @RequestParam(value = "title",required = false) String title
 
     ){
 
-
-
-        String result = "";
-        //如果普通用户访问index页面，则不需要登录也提供数据
 
             //因为和查询文章类型做的显示数据方法一样，故copy部分代码,而且之前做的PageBean因为是泛型所以还可以继续引用
             //先判断所得参数是不是空，然后将其转为int数据
@@ -167,21 +155,13 @@ public class BlogAdminController {
             jsonMap.put("pb", pb);
 
 
-            //封装成json返回
-            ObjectMapper mapper = new ObjectMapper();
-            try {
-                result = mapper.writeValueAsString(jsonMap);
-            } catch (JsonProcessingException e) {
-                e.printStackTrace();
-            }
 
-
-        return result;
+        return jsonMap;
     }
 
     //删除方法
     @RequestMapping("/blogDelete")
-    public @ResponseBody String blogDelete(
+    public @ResponseBody ResultInfo blogDelete(
         @RequestParam(value ="ids[]") Integer[] ids)
     {
 
@@ -199,15 +179,7 @@ public class BlogAdminController {
             }
 
 
-            //返回json
-            ObjectMapper mapper = new ObjectMapper();
-            String result = "";
-            try {
-                result = mapper.writeValueAsString(info);
-            } catch (JsonProcessingException e) {
-                e.printStackTrace();
-            }
-            return result;
+            return info;
     }
 
     //根据ID查询博客信息

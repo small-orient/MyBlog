@@ -36,12 +36,10 @@ public class BlogArticleAdminController {
      * @return
      */
     @RequestMapping("/list")
-    public  @ResponseBody String list(
+    public  @ResponseBody PageBean<BlogArticle> list(
                 @RequestParam(value = "currentPage",required = false) String currentPageStr,
                 @RequestParam(value = "pageSize",required = false) String pageSizeStr  
                 ){
-
-        String resultArticleList = "";
 
           
             //先判断所得参数是不是空，然后将其转为int数据
@@ -68,28 +66,17 @@ public class BlogArticleAdminController {
 
 
 
-            //返回json
-            ObjectMapper mapper = new ObjectMapper();
-
-            try {
-                resultArticleList = mapper.writeValueAsString(pb);
-            } catch (JsonProcessingException e) {
-                e.printStackTrace();
-            }
-
-
-        return resultArticleList;
+        return pb;
     }
 
 
         //储存文章类型
         @RequestMapping("/save")
-        public  @ResponseBody String save(
+        public  @ResponseBody ResultInfo save(
                     @RequestParam(value = "typeName") String typeName,
                     @RequestParam(value = "orderNo") String orderNo
                     ){
 
-            String resultInfo = "";
 
 
             //封装数据
@@ -118,51 +105,34 @@ public class BlogArticleAdminController {
                 info.setErrorInfo("保存失败，请重试！");
             }
 
-            //返回json
-            ObjectMapper mapper = new ObjectMapper();
 
-            try {
-                resultInfo = mapper.writeValueAsString(info);
-            } catch (JsonProcessingException e) {
-                e.printStackTrace();
-            }
 
-            return resultInfo;
+            return info;
         }
 
 
         //回显方法
         @RequestMapping("/relook")
-        public @ResponseBody String relook(
+        public @ResponseBody BlogArticle relook(
                 @RequestParam(value ="id_update") int id
                 ){
 
-            String result = "";
 
                 //根据前台Id查询文章数据回显至输入框
                 BlogArticle blogArticle = blogArticleService.findById(id);
 
-                //返回json
-                ObjectMapper mapper = new ObjectMapper();
 
-                try {
-                    result = mapper.writeValueAsString(blogArticle);
-                } catch (JsonProcessingException e) {
-                    e.printStackTrace();
-                }
-
-            return result;
+            return blogArticle;
         }
 
     //修改文章类型
     @RequestMapping("/update")
-    public @ResponseBody String update(
+    public @ResponseBody Integer update(
             @RequestParam(value ="id_update") int id,
             @RequestParam(value ="typeName_update") String typeName_update,
             @RequestParam(value ="orderNo_update") String orderNo_update
     ){
 
-        String result = "";
 
             Integer count = 0;//记录返回数
 
@@ -180,24 +150,17 @@ public class BlogArticleAdminController {
             }
 
             count = blogArticleService.update(id, typeName_update, orderNo_update);
-            //返回json
-            ObjectMapper mapper = new ObjectMapper();
-            try {
-                result = mapper.writeValueAsString(count);
-            } catch (JsonProcessingException e) {
-                e.printStackTrace();
-            }
 
-        return result;
+
+        return count;
     }
 
 
     //删除文章类型
     @RequestMapping("/delete")
-    public @ResponseBody String delete(
+    public @ResponseBody ResultInfo delete(
             @RequestParam(value ="ids[]") Integer[] ids){
 
-        String result = "";
 
             //定义返回提示信息
             ResultInfo info = new ResultInfo();
@@ -230,21 +193,12 @@ public class BlogArticleAdminController {
             }
 
 
-            //返回json
-            ObjectMapper mapper = new ObjectMapper();
-
-            try {
-                result = mapper.writeValueAsString(info);
-            } catch (JsonProcessingException e) {
-                e.printStackTrace();
-            }
-
-        return result;
+        return info;
     }
 
     //写博客下拉列表名称显示方法
     @RequestMapping("/typeName")
-    public @ResponseBody String typeName(){
+    public @ResponseBody  List<BlogArticle> typeName(){
 
         String Article = "";
 
@@ -252,14 +206,9 @@ public class BlogArticleAdminController {
             List<BlogArticle> blogArticles = blogArticleService.countList();
 
 
-            ObjectMapper mapper = new ObjectMapper();
-            try {
-                Article = mapper.writeValueAsString(blogArticles);
-            } catch (JsonProcessingException e) {
-                e.printStackTrace();
-            }
 
-        return Article;
+
+        return blogArticles;
 
     }
 

@@ -37,46 +37,32 @@ private BlogService blogService;
 
     //网站标题
     @RequestMapping("/title")
-    public  @ResponseBody String title(){
+    public  @ResponseBody  Map<String,Object> title(){
 
         Map<String,Object> map = new HashMap<>();
         map.put("title","个人博客");
 
-        ObjectMapper mapper = new ObjectMapper();
-        String result = "";
-        try {
-             result =  mapper.writeValueAsString(map);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
-
-        return result;
+        return map;
     }
 
 
     //热门标签
     @RequestMapping("/findTypeName")
-    public  @ResponseBody String findTypeName(){
+    public  @ResponseBody  Map<String,Object> findTypeName(){
         //查询文章类别信息
         List<BlogArticle> list = indexService.findTypeName();
 
         Map<String,Object> map = new HashMap<>();
         map.put("list",list);
-        String resultList = "";
-        ObjectMapper mapper = new ObjectMapper();
-        try {
-            resultList =  mapper.writeValueAsString(map);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
 
-        return resultList;
+
+        return map;
     }
 
 
     //显示对应标签数据方法
     @RequestMapping("/findSymbolData")
-    public  @ResponseBody String findSymbolData(@RequestParam(value = "typeName") String typeName){
+    public  @ResponseBody  List<Blog> findSymbolData(@RequestParam(value = "typeName") String typeName){
 
         Integer articleId = 0;
         if (typeName != null && typeName.length() > 0){
@@ -85,20 +71,14 @@ private BlogService blogService;
         }
 
         List<Blog> blog = indexService.findBlog(articleId);
-        String result = "";
-        ObjectMapper mapper = new ObjectMapper();
-        try {
-            result =  mapper.writeValueAsString(blog);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
 
-        return result;
+
+        return blog;
 
     }
     //显示友情链接方法
     @RequestMapping("/findLink")
-    public  @ResponseBody String findLink(){
+    public  @ResponseBody List<Link> findLink(){
         List<Link> links = indexService.findLink();
 
         /*ArrayList<String> list = new ArrayList();
@@ -110,29 +90,20 @@ private BlogService blogService;
        /*java 8 去重的新特性方法stream()， List<String> linkNameList = list.stream().distinct().collect(Collectors.toList());*/
 
 
-        String result = "";
-        ObjectMapper mapper = new ObjectMapper();
-        try {
-            result =  mapper.writeValueAsString(links);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
-
-        return result;
+        return links;
 
     }
 
     //博客查询功能
     @RequestMapping("/list")
-    public @ResponseBody String list(
+    public @ResponseBody Map<String, Object> list(
             @RequestParam(value = "currentPage",required = false) String currentPageStr,
             @RequestParam(value = "pageSize",required = false) String pageSizeStr,
             @RequestParam(value = "title",required = false) String title
 
     ){
 
-        String result = "";
-        //如果普通用户访问index页面，则不需要登录也提供数据
+
 
         //因为和查询文章类型做的显示数据方法一样，故copy部分代码,而且之前做的PageBean因为是泛型所以还可以继续引用
         //先判断所得参数是不是空，然后将其转为int数据
@@ -184,16 +155,8 @@ private BlogService blogService;
         jsonMap.put("pb", pb);
 
 
-        //封装成json返回
-        ObjectMapper mapper = new ObjectMapper();
-        try {
-            result = mapper.writeValueAsString(jsonMap);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
 
-
-        return result;
+        return jsonMap;
     }
 
 

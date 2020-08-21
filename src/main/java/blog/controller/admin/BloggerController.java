@@ -32,7 +32,7 @@ public class BloggerController {
 
     @RequestMapping("/login")
     public @ResponseBody
-    String login(Blogger blogger, HttpSession session) {
+    ResultInfo login(Blogger blogger, HttpSession session) {
 
 //      从前端获取的用户名
         String userName = blogger.getUserName();
@@ -46,9 +46,6 @@ public class BloggerController {
         //定义返回前端结果信息集
         ResultInfo info = new ResultInfo();
 
-        //用于将info类型数据写为String，然后返回
-        ObjectMapper mapper = new ObjectMapper();
-        String resultInfo = "";
 
         //看user有无信息
         if (user != null) {
@@ -64,49 +61,31 @@ public class BloggerController {
         }
 
 
-        try {
-            //将info写成字符串
-            resultInfo = mapper.writeValueAsString(info);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
-
 
         //返回json
-        return resultInfo;
+        return info;
     }
 
     //根据密码查询博主
     @RequestMapping("/findBlogger")
     public @ResponseBody
-    String findBlogger(@RequestParam(value = "oldPassword") String oldPassword,HttpServletRequest request) {
+    Blogger findBlogger(@RequestParam(value = "oldPassword") String oldPassword) {
 
-        String result = "";
-        //判断是否在登录状态，否则不反应数据
-        if (request.getSession().getAttribute("username").equals("admin")) {
+
             Blogger blogger = null;
             if (oldPassword != null && oldPassword.length() > 0) {
                 blogger = bloggerService.findBlogger(oldPassword);
             }
 
 
-            //用于将info类型数据写为String，然后返回
-            ObjectMapper mapper = new ObjectMapper();
-            try {
-                //将info写成字符串
-                result = mapper.writeValueAsString(blogger);
-            } catch (JsonProcessingException e) {
-                e.printStackTrace();
-            }
-        }
 
-        return result;
+        return blogger;
     }
 
 
     //修改密码
     @RequestMapping(value = "/updatePassword", method = RequestMethod.POST)
-    public @ResponseBody String updatePassword(@RequestParam(value = "password") String password) {
+    public @ResponseBody Integer updatePassword(@RequestParam(value = "password") String password) {
 
             Integer count = 0;
             String result = "";
@@ -115,17 +94,9 @@ public class BloggerController {
                 count = bloggerService.updatePassword(password);
             }
 
-            //用于将info类型数据写为String，然后返回
-            ObjectMapper mapper = new ObjectMapper();
-            try {
-                //将info写成字符串
-                result = mapper.writeValueAsString(count);
-            } catch (JsonProcessingException e) {
-                e.printStackTrace();
-            }
 
 
-        return result;
+        return count;
     }
 
 

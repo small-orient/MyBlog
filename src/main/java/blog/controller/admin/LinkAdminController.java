@@ -29,12 +29,11 @@ public class LinkAdminController {
 
     //分页方法，查询数据显示
     @RequestMapping("/list")
-    public  @ResponseBody String list(@RequestParam(value = "currentPage",required = false) String currentPageStr,
+    public  @ResponseBody Map<String, Object> list(@RequestParam(value = "currentPage",required = false) String currentPageStr,
                 @RequestParam(value = "pageSize",required = false) String pageSizeStr
 
     ){
 
-        String result = "";
 
             //因为和查询文章类型做的显示数据方法一样，故copy部分代码,而且之前做的PageBean因为是泛型所以还可以继续引用
             //先判断所得参数是不是空，然后将其转为int数据
@@ -81,29 +80,19 @@ public class LinkAdminController {
             jsonMap.put("pb", pb);
 
 
-            //封装成json返回
-            ObjectMapper mapper = new ObjectMapper();
-            try {
-                result = mapper.writeValueAsString(jsonMap);
-            } catch (JsonProcessingException e) {
-                e.printStackTrace();
-            }
 
-        return result;
+
+        return jsonMap;
 
     }
 
 
     //储存友情链接
     @RequestMapping("/save")
-    public  @ResponseBody String save(
+    public  @ResponseBody ResultInfo save(
             @RequestParam(value = "linkName") String linkName,
             @RequestParam(value = "linkUrl") String linkUrl,
-            @RequestParam(value = "orderNo") int orderNo
-    ){
-
-        String resultInfo = "";
-
+            @RequestParam(value = "orderNo") int orderNo){
 
             //封装数据
             Link link = new Link();
@@ -132,27 +121,20 @@ public class LinkAdminController {
                 info.setErrorInfo("保存失败，请重试！");
             }
 
-            //返回json
-            ObjectMapper mapper = new ObjectMapper();
-            try {
-                resultInfo = mapper.writeValueAsString(info);
-            } catch (JsonProcessingException e) {
-                e.printStackTrace();
-            }
 
-        return resultInfo;
+
+        return info;
     }
 
     //修改友情链接
     @RequestMapping("/update")
-    public @ResponseBody String update(
+    public @ResponseBody Integer update(
             @RequestParam(value ="linkId") int id,
             @RequestParam(value ="linkName") String linkName,
             @RequestParam(value = "linkUrl") String linkUrl,
             @RequestParam(value = "orderNo") int orderNo
     ){
 
-        String result = "";
 
 
             Integer count = 0;//记录返回数
@@ -182,52 +164,33 @@ public class LinkAdminController {
         System.out.println(orderNo);
         System.out.println(count);*/
 
-            //返回json
-            ObjectMapper mapper = new ObjectMapper();
-            try {
-                result = mapper.writeValueAsString(count);
-            } catch (JsonProcessingException e) {
-                e.printStackTrace();
-            }
 
-        return result;
+
+        return count;
     }
 
     //回显方法
     @RequestMapping("/relook")
-    public @ResponseBody String relook(
+    public @ResponseBody Link relook(
             @RequestParam(value ="linkId") int id
     ){
-
-        String result = "";
 
 
             //根据前台Id查询文章数据回显至输入框
             Link link = linkService.findById(id);
 
-            //返回json
-            ObjectMapper mapper = new ObjectMapper();
-            try {
-                result = mapper.writeValueAsString(link);
-            } catch (JsonProcessingException e) {
-                e.printStackTrace();
-            }
 
-        return result;
+        return link;
     }
 
 
     //删除方法
     @RequestMapping("/delete")
-    public @ResponseBody String delete(
+    public @ResponseBody ResultInfo delete(
             @RequestParam(value ="ids[]") Integer[] ids) {
-
-        String result = "";
-
 
             //定义返回提示信息
             ResultInfo info = new ResultInfo();
-
 
             for (Integer id : ids) {
                 Integer count = linkService.delete(id);
@@ -239,15 +202,7 @@ public class LinkAdminController {
             }
 
 
-            //返回json
-            ObjectMapper mapper = new ObjectMapper();
-            try {
-                result = mapper.writeValueAsString(info);
-            } catch (JsonProcessingException e) {
-                e.printStackTrace();
-            }
-
-        return result;
+        return info;
     }
 
 

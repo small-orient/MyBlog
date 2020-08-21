@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,13 +31,10 @@ public class CommentAdminController {
 
     //分页方法，查询数据显示
     @RequestMapping("/list")
-    public  @ResponseBody String list(@RequestParam(value = "currentPage",required = false) String currentPageStr,
+    public  @ResponseBody Map<String, Object> list(@RequestParam(value = "currentPage",required = false) String currentPageStr,
                 @RequestParam(value = "pageSize",required = false) String pageSizeStr,
                 @RequestParam(value = "state",required = false) String state
     ){
-
-
-        String result = "";
 
 
         //因为和查询文章类型做的显示数据方法一样，故copy部分代码,而且之前做的PageBean因为是泛型所以还可以继续引用
@@ -88,28 +84,18 @@ public class CommentAdminController {
         jsonMap.put("pb", pb);
 
 
-        //封装成json返回
-        ObjectMapper mapper = new ObjectMapper();
-        try {
-            result = mapper.writeValueAsString(jsonMap);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
 
-        return result;
+
+        return jsonMap;
 
     }
 
     //删除方法
     @RequestMapping("/commentDelete")
-    public @ResponseBody String commentDelete(
+    public @ResponseBody ResultInfo commentDelete(
             @RequestParam(value ="ids[]") Integer[] ids  ) {
 
-        String result = "";
-
-
             Integer count = commentService.delete(ids);
-
 
             //定义返回提示信息
             ResultInfo info = new ResultInfo();
@@ -121,25 +107,14 @@ public class CommentAdminController {
             }
 
 
-            //返回json
-            ObjectMapper mapper = new ObjectMapper();
 
-            try {
-                result = mapper.writeValueAsString(info);
-            } catch (JsonProcessingException e) {
-                e.printStackTrace();
-            }
-
-        return result;
+        return info;
     }
 
     //审核方法：修改state
     @RequestMapping("/review")
-    public @ResponseBody String commentReview(@RequestParam(value ="ids[]") Integer[] ids,
-                                              @RequestParam(value = "state") int state
-                                              ) {
-
-        String result = "";
+    public @ResponseBody ResultInfo commentReview(@RequestParam(value ="ids[]") Integer[] ids,
+                                              @RequestParam(value = "state") int state) {
 
 
             //定义返回提示信息
@@ -162,15 +137,8 @@ public class CommentAdminController {
             }
 
 
-            //返回json
-            ObjectMapper mapper = new ObjectMapper();
-            try {
-                result = mapper.writeValueAsString(info);
-            } catch (JsonProcessingException e) {
-                e.printStackTrace();
-            }
 
-        return result;
+        return info;
 
     }
 
